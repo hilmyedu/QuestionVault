@@ -3,456 +3,613 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Question Vault - Personal Q&A Notes</title>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Caveat:wght@500;600&display=swap" rel="stylesheet">
+  <title>Question Vault - Dynamic Folders & Pagination</title>
+  
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
   <style>
     :root {
-      --bg-color: #fcfcfc;
-      --text-dark: #111827;
-      --text-muted: #6b7280;
-      --border-light: #e5e7eb;
+      --bg-app: #f4f6fb;
+      --sidebar-bg: #ffffff;
+      --card-blue: #dbeafe;
+      --card-pink: #ffe4e6;
+      --card-yellow: #fef08a;
+      --card-green: #dcfce7;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --primary: #2563eb;
     }
 
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: 'Space Grotesk', -apple-system, sans-serif;
+      font-family: 'Plus Jakarta Sans', sans-serif;
     }
 
     body {
-      background-color: var(--bg-color);
-      color: var(--text-dark);
-      padding: 40px 20px;
-      max-width: 1100px;
-      margin: 0 auto;
-    }
-
-    /* Top Navigation */
-    header {
+      background-color: var(--bg-app);
+      color: var(--text-main);
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 50px;
+      height: 100vh;
+      overflow: hidden;
     }
 
-    .brand {
-      font-weight: 700;
-      font-size: 20px;
-      letter-spacing: -0.5px;
-    }
-
-    .top-actions {
-      display: flex;
-      gap: 12px;
-    }
-
-    .btn-subtle {
-      background: none;
-      border: 1px solid var(--border-light);
-      padding: 6px 14px;
-      border-radius: 20px;
-      font-size: 13px;
-      font-weight: 500;
-      cursor: pointer;
-      color: var(--text-dark);
-      transition: background 0.2s;
-    }
-
-    .btn-subtle:hover {
-      background: #f3f4f6;
-    }
-
-    input[type="file"] { display: none; }
-
-    /* Hero Title & Intro */
-    .hero-section {
-      display: grid;
-      grid-template-columns: 1fr 1.2fr;
-      gap: 30px;
-      margin-bottom: 40px;
-      align-items: start;
-    }
-
-    @media (max-width: 768px) {
-      .hero-section { grid-template-columns: 1fr; }
-    }
-
-    .hero-title {
-      font-size: 36px;
-      font-weight: 700;
-      letter-spacing: -1px;
-    }
-
-    .hero-desc {
-      font-size: 15px;
-      color: var(--text-muted);
-      line-height: 1.6;
-    }
-
-    /* Input Form Section */
-    .input-card {
-      background: #fff;
-      border: 1px dashed #cbd5e1;
-      border-radius: 12px;
-      padding: 20px;
-      margin-bottom: 35px;
-    }
-
-    .form-row {
-      display: flex;
-      gap: 12px;
-      margin-bottom: 12px;
-    }
-
-    @media (max-width: 600px) {
-      .form-row { flex-direction: column; }
-    }
-
-    input[type="text"], select {
-      width: 100%;
-      padding: 10px 14px;
-      border: 1px solid var(--border-light);
-      border-radius: 8px;
-      font-size: 14px;
-      outline: none;
-      background: #fafafa;
-    }
-
-    input:focus, select:focus {
-      background: #fff;
-      border-color: #94a3b8;
-    }
-
-    .new-cat-input {
-      display: none;
-      margin-top: 8px;
-    }
-
-    .btn-add {
-      background: var(--text-dark);
-      color: #fff;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 8px;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      width: 100%;
-    }
-
-    /* Topic Filter Pills */
-    .topics-section {
-      margin-bottom: 35px;
-    }
-
-    .topic-pills {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-
-    .pill {
-      padding: 6px 14px;
-      border-radius: 20px;
-      font-size: 13px;
-      font-weight: 500;
-      background: #f3f4f6;
-      color: var(--text-muted);
-      cursor: pointer;
-      border: 1px solid transparent;
-      transition: all 0.2s;
-    }
-
-    .pill.active {
-      background: #3b82f6;
-      color: #fff;
-    }
-
-    /* Post-It Note Grid */
-    .garden-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-      gap: 20px;
-    }
-
-    .post-it {
-      border-radius: 12px;
-      padding: 20px;
-      min-height: 260px;
+    /* --- SIDEBAR --- */
+    aside {
+      width: 240px;
+      background: var(--sidebar-bg);
+      padding: 24px 16px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
-      border: 1px solid rgba(0, 0, 0, 0.06);
-      transition: transform 0.2s, box-shadow 0.2s;
-      position: relative;
+      border-right: 1px solid #e2e8f0;
+      flex-shrink: 0;
     }
 
-    .post-it:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+    .brand {
+      font-weight: 800;
+      font-size: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding-left: 10px;
     }
 
-    /* Post-It Colors */
-    .bg-yellow { background-color: #fef08a; }
-    .bg-blue   { background-color: #bfdbfe; }
-    .bg-purple { background-color: #c7d2fe; }
-    .bg-pink   { background-color: #fbcfe8; }
-    .bg-beige  { background-color: #fef3c7; }
+    .brand-icon {
+      width: 12px;
+      height: 12px;
+      background: var(--primary);
+      border-radius: 50%;
+      box-shadow: 14px 0 0 #ef4444, 28px 0 0 #eab308;
+    }
 
-    .tag-badge {
-      display: inline-block;
-      padding: 3px 10px;
+    .nav-menu {
+      margin-top: 30px;
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .nav-item {
+      padding: 12px 16px;
       border-radius: 12px;
-      border: 1px solid rgba(0,0,0,0.15);
-      font-size: 11px;
+      font-size: 14px;
       font-weight: 600;
-      margin-bottom: 12px;
-      width: fit-content;
-      text-transform: capitalize;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: all 0.2s;
     }
 
-    .note-question {
+    .nav-item:hover, .nav-item.active {
+      background: #eff6ff;
+      color: var(--primary);
+    }
+
+    /* --- APP LAYOUT --- */
+    #app {
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* --- HEADER & PROFILE DROPDOWN --- */
+    header {
+      height: 70px;
+      background: #ffffff;
+      border-bottom: 1px solid #e2e8f0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 32px;
+      flex-shrink: 0;
+    }
+
+    .search-box {
+      background: var(--bg-app);
+      padding: 10px 18px;
+      border-radius: 20px;
+      border: 1px solid #e2e8f0;
+      width: 280px;
+      font-size: 14px;
+      outline: none;
+    }
+
+    .profile-area { position: relative; }
+
+    .profile-btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 6px 12px;
+      border-radius: 30px;
+      transition: background 0.2s;
+    }
+
+    .profile-btn:hover { background: var(--bg-app); }
+
+    .avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: #3b82f6;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .dropdown-menu {
+      position: absolute;
+      right: 0;
+      top: 50px;
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 16px;
+      width: 230px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+      display: none;
+      flex-direction: column;
+      padding: 8px;
+      z-index: 100;
+    }
+
+    .dropdown-menu.show { display: flex; }
+
+    .dropdown-item {
+      padding: 10px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-main);
+      border-radius: 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+    }
+
+    .dropdown-item:hover { background: #f1f5f9; }
+    .dropdown-divider { height: 1px; background: #e2e8f0; margin: 4px 0; }
+
+    /* --- MAIN CONTENT CONTAINER --- */
+    .content-area {
+      flex-grow: 1;
+      padding: 24px 32px;
+      overflow-y: auto;
+    }
+
+    .section-title {
       font-size: 16px;
       font-weight: 700;
-      line-height: 1.3;
-      margin-bottom: 12px;
+      margin-bottom: 14px;
       color: #0f172a;
     }
 
-    .dashed-divider {
-      border: none;
-      border-top: 1px dashed rgba(0, 0, 0, 0.2);
-      margin: 10px 0;
+    /* --- FOLDER PAGINATION ROW --- */
+    .folder-pagination-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 28px;
     }
 
-    .note-answer {
-      font-family: 'Caveat', cursive;
-      font-size: 19px;
-      line-height: 1.3;
-      color: #1e293b;
+    .btn-nav-arrow {
+      background: #fff;
+      border: 1px solid #cbd5e1;
+      border-radius: 50%;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-weight: bold;
+      flex-shrink: 0;
+      user-select: none;
+    }
+
+    .btn-nav-arrow:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+
+    .folders-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 14px;
       flex-grow: 1;
+    }
+
+    .folder-card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 16px;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: all 0.2s;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 110px;
+    }
+
+    .folder-card.active {
+      border-color: var(--primary);
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.1);
+    }
+
+    .folder-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+
+    .folder-name {
+      font-weight: 700;
+      font-size: 13px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .folder-count {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .folder-add-btn {
+      border: 2px dashed #cbd5e1;
       background: transparent;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
+
+    /* --- FORM CATATAN --- */
+    .form-card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 18px;
+      margin-bottom: 28px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+      border: 1px solid #e2e8f0;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    input[type="text"], select {
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 1px solid #cbd5e1;
+      font-size: 14px;
+      outline: none;
+    }
+
+    .btn-submit {
+      background: var(--text-main);
+      color: #fff;
       border: none;
+      padding: 10px 20px;
+      border-radius: 10px;
+      font-weight: 600;
+      cursor: pointer;
       width: 100%;
+    }
+
+    /* --- CATATAN GRID --- */
+    .notes-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 20px;
+    }
+
+    .note-card {
+      border-radius: 18px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 220px;
+    }
+
+    .note-tag {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      opacity: 0.6;
+      margin-bottom: 6px;
+    }
+
+    .note-q { font-size: 15px; font-weight: 700; margin-bottom: 10px; }
+
+    .note-ans {
+      background: rgba(255,255,255,0.5);
+      border: 1px solid rgba(0,0,0,0.08);
+      border-radius: 10px;
+      padding: 8px 12px;
+      font-size: 13px;
+      width: 100%;
+      height: 75px;
       resize: none;
       outline: none;
     }
 
-    .note-footer {
-      font-size: 11px;
-      color: rgba(0,0,0,0.5);
-      margin-top: 10px;
+    .note-foot {
       display: flex;
       justify-content: space-between;
       align-items: center;
-    }
-
-    .btn-delete {
-      background: none;
-      border: none;
-      color: #ef4444;
-      cursor: pointer;
-      font-size: 12px;
-      font-weight: 600;
+      margin-top: 10px;
+      font-size: 11px;
       opacity: 0.6;
     }
-    .btn-delete:hover { opacity: 1; }
+
+    @media (max-width: 900px) {
+      body { flex-direction: column; }
+      aside { display: none; }
+      header { padding: 0 16px; }
+      .search-box { width: 160px; }
+      .content-area { padding: 16px; }
+      .folders-grid { grid-template-columns: repeat(2, 1fr); }
+      .form-grid { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
 
-  <!-- Header -->
-  <header>
-    <div class="brand">question_vault</div>
-    <div class="top-actions">
-      <button class="btn-subtle" onclick="exportJSON()">Export</button>
-      <label class="btn-subtle" style="cursor: pointer;">
-        Import
-        <input type="file" id="importInput" accept=".json" onchange="importJSON(event)">
-      </label>
+  <!-- Sidebar -->
+  <aside>
+    <div>
+      <div class="brand"><div class="brand-icon"></div> MINI NOTES</div>
+      <ul class="nav-menu">
+        <li class="nav-item active">📝 All Notes</li>
+      </ul>
     </div>
-  </header>
+    <div style="font-size: 11px; color: var(--text-muted);">
+      Storage: Local Browser
+    </div>
+  </aside>
 
-  <!-- Hero Section -->
-  <section class="hero-section">
-    <h1 class="hero-title">Question Vault</h1>
-    <p class="hero-desc">
-      Tempat menampung pertanyaan, asumsi, dan ide acak yang belum terjawab. 
-      Simpan sekarang, lalu isi jawabannya kapan saja saat kamu mendapatkan insight baru.
-    </p>
-  </section>
+  <!-- App Wrapper -->
+  <div id="app">
+    
+    <!-- Top Header & Dropdown PDF -->
+    <header>
+      <input type="text" id="searchInput" class="search-box" placeholder="Cari catatan..." oninput="renderNotes()">
+      
+      <div class="profile-area">
+        <button class="profile-btn" onclick="toggleProfileMenu(event)">
+          <div class="avatar"><b>;</b></div>
+          <span style="font-size: 13px; font-weight: 700;">Profile ▾</span>
+        </button>
 
-  <!-- Input Card -->
-  <div class="input-card">
-    <div class="form-row">
-      <input type="text" id="questionInput" placeholder="Tulis pertanyaanmu di sini..." style="flex: 2;">
-      <div style="flex: 1;">
-        <select id="topicSelect" onchange="handleCategoryChange(this.value)">
-          <!-- Dynamic Dropdown Options -->
-        </select>
-        <input type="text" id="newCategoryInput" class="new-cat-input" placeholder="Ketik nama kategori baru...">
+        <div class="dropdown-menu" id="profileDropdown">
+          <button class="dropdown-item" onclick="exportPDF('All Notes')">📄 Download All PDF</button>
+          <button class="dropdown-item" onclick="exportPDF(activeFolder)">📑 Download PDF (Folder Ini)</button>
+          <div class="dropdown-divider"></div>
+          <button class="dropdown-item" onclick="exportJSON()">💾 Export JSON</button>
+          <label class="dropdown-item" style="cursor: pointer;">
+            📂 Import JSON
+            <input type="file" id="importFile" accept=".json" onchange="importJSON(event)" style="display:none;">
+          </label>
+        </div>
       </div>
+    </header>
+
+    <!-- Content Container -->
+    <div class="content-area">
+      
+      <!-- Folders Top Bar dengan Pagination (4 Folder Max + 1 New Folder) -->
+      <h2 class="section-title">Folders / Categories</h2>
+      <div class="folder-pagination-wrapper">
+        <button class="btn-nav-arrow" id="btnPrevFolder" onclick="changeFolderPage(-1)">◀</button>
+
+        <div class="folders-grid" id="foldersContainer"></div>
+
+        <button class="btn-nav-arrow" id="btnNextFolder" onclick="changeFolderPage(1)">▶</button>
+      </div>
+
+      <!-- Form Buat Catatan -->
+      <div class="form-card">
+        <div class="form-grid">
+          <input type="text" id="qInput" placeholder="Tulis pertanyaan / ide baru...">
+          <select id="folderSelect"></select>
+        </div>
+        <button class="btn-submit" onclick="addNote()">Simpan Catatan</button>
+      </div>
+
+      <!-- Catatan Grid -->
+      <h2 class="section-title" id="notesTitle">My Notes</h2>
+      <div class="notes-grid" id="notesGrid"></div>
+
     </div>
-    <button class="btn-add" onclick="addNote()">+ Simpan Pertanyaan</button>
   </div>
-
-  <!-- Topics Filter -->
-  <div class="topics-section">
-    <div class="topic-pills" id="topicFilterContainer"></div>
-  </div>
-
-  <!-- Note Grid -->
-  <main class="garden-grid" id="gardenGrid"></main>
 
   <script>
-    const STORAGE_KEY = 'question_vault_notes';
-    const COLOR_PALETTE = ['bg-yellow', 'bg-beige', 'bg-blue', 'bg-purple', 'bg-pink'];
-    
+    const STORAGE_KEY_NOTES = 'mino_notes_dynamic_v4';
+    const STORAGE_KEY_FOLDERS = 'mino_folders_dynamic_v4';
+    const COLOR_CLASSES = ['card-blue', 'card-pink', 'card-yellow', 'card-green'];
+
     let notes = [];
-    let activeFilter = 'All';
+    let folders = ['All Notes', 'Movie Review', 'Class Notes', 'Book Lists', 'Tech & Code'];
+    
+    let activeFolder = 'All Notes';
+    let folderCurrentPage = 0;
+    const FOLDERS_PER_PAGE = 4; // Max 4 folder per halaman, slot ke-5 untuk + New Folder
 
     document.addEventListener('DOMContentLoaded', () => {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        try { notes = JSON.parse(saved); } catch(e) { notes = []; }
+      // Load saved notes & folders
+      const savedNotes = localStorage.getItem(STORAGE_KEY_NOTES);
+      if (savedNotes) {
+        try { notes = JSON.parse(savedNotes); } catch(e) { notes = []; }
       }
+
+      const savedFolders = localStorage.getItem(STORAGE_KEY_FOLDERS);
+      if (savedFolders) {
+        try { folders = JSON.parse(savedFolders); } catch(e) {}
+      }
+      
+      // Sinkronisasi folder dari catatan yang tersimpan
+      const customFoldersFromNotes = [...new Set(notes.map(n => n.folder))];
+      customFoldersFromNotes.forEach(f => {
+        if (f && !folders.includes(f)) folders.push(f);
+      });
+
       render();
+
+      document.addEventListener('click', (e) => {
+        if (!e.target.closest('.profile-area')) {
+          document.getElementById('profileDropdown').classList.remove('show');
+        }
+      });
     });
 
     function save() {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
+      localStorage.setItem(STORAGE_KEY_NOTES, JSON.stringify(notes));
+      localStorage.setItem(STORAGE_KEY_FOLDERS, JSON.stringify(folders));
       render();
     }
 
-    function handleCategoryChange(val) {
-      const newCatInput = document.getElementById('newCategoryInput');
-      if (val === '__ADD_NEW__') {
-        newCatInput.style.display = 'block';
-        newCatInput.focus();
-      } else {
-        newCatInput.style.display = 'none';
-        newCatInput.value = '';
-      }
+    function toggleProfileMenu(e) {
+      e.stopPropagation();
+      document.getElementById('profileDropdown').classList.toggle('show');
     }
 
-    function addNote() {
-      const qInput = document.getElementById('questionInput');
-      const tSelect = document.getElementById('topicSelect');
-      const newCatInput = document.getElementById('newCategoryInput');
+    /* --- DYNAMIC FOLDERS & PAGINATION --- */
+    function renderFolders() {
+      const container = document.getElementById('foldersContainer');
+      const select = document.getElementById('folderSelect');
+      const prevBtn = document.getElementById('btnPrevFolder');
+      const nextBtn = document.getElementById('btnNextFolder');
 
-      const qVal = qInput.value.trim();
-      if (!qVal) return;
+      const totalPages = Math.ceil(folders.length / FOLDERS_PER_PAGE) || 1;
+      
+      if (folderCurrentPage < 0) folderCurrentPage = 0;
+      if (folderCurrentPage >= totalPages) folderCurrentPage = totalPages - 1;
 
-      let tVal = tSelect.value;
-      if (tVal === '__ADD_NEW__') {
-        tVal = newCatInput.value.trim();
-        if (!tVal) tVal = 'General';
-      }
+      prevBtn.disabled = (folderCurrentPage === 0);
+      nextBtn.disabled = (folderCurrentPage >= totalPages - 1);
 
-      const randomColor = COLOR_PALETTE[Math.floor(Math.random() * COLOR_PALETTE.length)];
+      const startIndex = folderCurrentPage * FOLDERS_PER_PAGE;
+      const visibleFolders = folders.slice(startIndex, startIndex + FOLDERS_PER_PAGE);
 
-      const newNote = {
-        id: Date.now(),
-        question: qVal,
-        topic: tVal,
-        answer: '',
-        color: randomColor,
-        created: new Date().toLocaleDateString('en-GB')
-      };
+      let folderHTML = '';
 
-      notes.unshift(newNote);
-      qInput.value = '';
-      newCatInput.value = '';
-      newCatInput.style.display = 'none';
-      save();
-    }
-
-    function updateAnswer(id, text) {
-      const note = notes.find(n => n.id === id);
-      if (note) {
-        note.answer = text;
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
-      }
-    }
-
-    function deleteNote(id) {
-      if (confirm('Hapus pertanyaan ini?')) {
-        notes = notes.filter(n => n.id !== id);
+      visibleFolders.forEach((f, idx) => {
+        const count = f === 'All Notes' ? notes.length : notes.filter(n => n.folder === f).length;
+        const color = COLOR_CLASSES[idx % COLOR_CLASSES.length];
         
-        const remainingTopics = notes.map(n => n.topic);
-        if (activeFilter !== 'All' && !remainingTopics.includes(activeFilter)) {
-          activeFilter = 'All';
+        folderHTML += `
+          <div class="folder-card ${activeFolder === f ? 'active' : ''}" onclick="selectFolder('${f}')">
+            <div class="folder-icon" style="background:${getBgColor(color)};">📂</div>
+            <div>
+              <div class="folder-name">${f}</div>
+              <div class="folder-count">${count} notes</div>
+            </div>
+          </div>
+        `;
+      });
+
+      // Slot 5: Tombol Tambah Folder Baru
+      folderHTML += `
+        <div class="folder-card folder-add-btn" onclick="addCustomFolder()">
+          <div style="font-size: 20px; font-weight: bold;">+</div>
+          <div class="folder-name">New Folder</div>
+        </div>
+      `;
+
+      container.innerHTML = folderHTML;
+
+      // Update Opsi Folder pada Form
+      const availableFoldersForSelect = folders.filter(f => f !== 'All Notes');
+      select.innerHTML = availableFoldersForSelect.map(f => `
+        <option value="${f}" ${f === activeFolder ? 'selected' : ''}>${f}</option>
+      `).join('');
+    }
+
+    function changeFolderPage(dir) {
+      folderCurrentPage += dir;
+      renderFolders();
+    }
+
+    function selectFolder(fName) {
+      activeFolder = fName;
+      render();
+    }
+
+    function addCustomFolder() {
+      const name = prompt('Masukkan Nama Folder/Kategori Baru:');
+      if (name && name.trim() !== '') {
+        const trimmed = name.trim();
+        if (!folders.includes(trimmed)) {
+          folders.push(trimmed);
         }
-        
+        activeFolder = trimmed;
+        // Pindah otomatis ke halaman tempat folder baru berada
+        folderCurrentPage = Math.floor((folders.length - 1) / FOLDERS_PER_PAGE);
         save();
       }
     }
 
-    function setFilter(topic) {
-      activeFilter = topic;
-      render();
-    }
-
-    function renderDropdownAndFilters() {
-      const filterContainer = document.getElementById('topicFilterContainer');
-      const tSelect = document.getElementById('topicSelect');
-      const counts = {};
-
-      notes.forEach(n => {
-        counts[n.topic] = (counts[n.topic] || 0) + 1;
-      });
-
-      const uniqueTopics = Object.keys(counts);
-      if (!uniqueTopics.includes('General')) {
-        uniqueTopics.unshift('General');
-      }
-
-      // Render Dropdown Options
-      let optionsHTML = uniqueTopics.map(t => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join('');
-      optionsHTML += `<option value="__ADD_NEW__">+ Buat Kategori Baru...</option>`;
-      tSelect.innerHTML = optionsHTML;
-
-      // Render Filter Pills
-      const existingTopics = Object.keys(counts);
-      const topics = ['All', ...existingTopics];
+    /* --- RENDER CATATAN --- */
+    function renderNotes() {
+      const grid = document.getElementById('notesGrid');
+      const title = document.getElementById('notesTitle');
+      const search = document.getElementById('searchInput').value.toLowerCase();
       
-      filterContainer.innerHTML = topics.map(topic => {
-        const countStr = topic === 'All' ? notes.length : counts[topic];
-        const isActive = activeFilter === topic ? 'active' : '';
-        return `<span class="pill ${isActive}" onclick="setFilter('${escapeHtml(topic)}')">${escapeHtml(topic)} (${countStr})</span>`;
-      }).join('');
-    }
-
-    function renderGrid() {
-      const grid = document.getElementById('gardenGrid');
+      title.innerText = activeFolder === 'All Notes' ? 'My Notes (All)' : `My Notes: ${activeFolder}`;
       grid.innerHTML = '';
 
-      const filteredNotes = activeFilter === 'All' 
-        ? notes 
-        : notes.filter(n => n.topic.toLowerCase() === activeFilter.toLowerCase());
+      let list = activeFolder === 'All Notes' ? notes : notes.filter(n => n.folder === activeFolder);
+      
+      if (search) {
+        list = list.filter(n => n.question.toLowerCase().includes(search) || n.answer.toLowerCase().includes(search));
+      }
 
-      if (filteredNotes.length === 0) {
-        grid.innerHTML = '<div style="grid-column: 1/-1; color: var(--text-muted);">Belum ada catatan di kategori ini.</div>';
+      if (list.length === 0) {
+        grid.innerHTML = '<div style="color: var(--text-muted); grid-column: 1/-1;">Belum ada catatan di folder ini.</div>';
         return;
       }
 
-      filteredNotes.forEach(item => {
+      list.forEach(n => {
         const el = document.createElement('div');
-        el.className = `post-it ${item.color || 'bg-yellow'}`;
+        el.className = `note-card ${n.color || 'card-blue'}`;
+        el.style.backgroundColor = getBgColor(n.color);
         el.innerHTML = `
           <div>
-            <span class="tag-badge">${escapeHtml(item.topic)}</span>
-            <div class="note-question">${escapeHtml(item.question)}</div>
+            <div class="note-tag">${n.folder} • ${n.date}</div>
+            <div class="note-q">${escapeHtml(n.question)}</div>
           </div>
           <div>
-            <hr class="dashed-divider">
-            <textarea class="note-answer" placeholder="Tulis jawaban..." oninput="updateAnswer(${item.id}, this.value)">${escapeHtml(item.answer)}</textarea>
-            <hr class="dashed-divider">
-            <div class="note-footer">
-              <span>created: ${item.created}</span>
-              <button class="btn-delete" onclick="deleteNote(${item.id})">hapus</button>
+            <textarea class="note-ans" placeholder="Tulis jawaban..." oninput="updateAnswer(${n.id}, this.value)">${escapeHtml(n.answer)}</textarea>
+            <div class="note-foot">
+              <span>ID: ${n.id.toString().slice(-4)}</span>
+              <button style="background:none; border:none; color:#ef4444; font-weight:600; cursor:pointer;" onclick="deleteNote(${n.id})">Hapus</button>
             </div>
           </div>
         `;
@@ -460,21 +617,131 @@
       });
     }
 
+    function addNote() {
+      const q = document.getElementById('qInput').value.trim();
+      let f = document.getElementById('folderSelect').value;
+      if (!q) return;
+
+      if (!f) f = 'General';
+
+      const randomColor = COLOR_CLASSES[Math.floor(Math.random() * COLOR_CLASSES.length)];
+      
+      notes.unshift({
+        id: Date.now(),
+        question: q,
+        answer: '',
+        folder: f,
+        color: randomColor,
+        date: new Date().toLocaleDateString('en-GB')
+      });
+
+      document.getElementById('qInput').value = '';
+      save();
+    }
+
+    function updateAnswer(id, txt) {
+      const n = notes.find(item => item.id === id);
+      if (n) {
+        n.answer = txt;
+        localStorage.setItem(STORAGE_KEY_NOTES, JSON.stringify(notes));
+      }
+    }
+
+    function deleteNote(id) {
+      if (confirm('Hapus catatan ini?')) {
+        notes = notes.filter(n => n.id !== id);
+        save();
+      }
+    }
+
     function render() {
-      renderDropdownAndFilters();
-      renderGrid();
+      renderFolders();
+      renderNotes();
+    }
+
+    function getBgColor(cls) {
+      if (cls === 'card-pink') return '#ffe4e6';
+      if (cls === 'card-yellow') return '#fef08a';
+      if (cls === 'card-green') return '#dcfce7';
+      return '#dbeafe';
     }
 
     function escapeHtml(str) {
-      return (str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+      return (str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    /* --- RETRO PDF EXPORT --- */
+    function exportPDF(targetFolder) {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      
+      let dataToExport = targetFolder === 'All Notes' ? notes : notes.filter(n => n.folder === targetFolder);
+
+      if (dataToExport.length === 0) {
+        alert('Tidak ada catatan untuk di-export.');
+        return;
+      }
+
+      let yPos = 20;
+
+      dataToExport.forEach((item) => {
+        if (yPos > 230) {
+          doc.addPage();
+          yPos = 20;
+        }
+
+        doc.setLineWidth(0.8);
+        doc.setDrawColor(0, 0, 0);
+        doc.rect(15, yPos, 180, 75);
+
+        doc.rect(130, yPos - 8, 60, 8);
+        doc.setFont("courier", "bold");
+        doc.setFontSize(9);
+        doc.text(`CATALOG: ${item.folder.substring(0, 12)}`, 133, yPos - 2);
+
+        doc.setFontSize(36);
+        doc.setFont("helvetica", "bold");
+        doc.text("“", 20, yPos + 18);
+
+        doc.setFont("courier", "bold");
+        doc.setFontSize(11);
+        const splitQ = doc.splitTextToSize(item.question, 145);
+        doc.text(splitQ, 35, yPos + 12);
+
+        doc.setLineDashPattern([2, 2], 0);
+        doc.line(20, yPos + 30, 185, yPos + 30);
+
+        doc.setFont("courier", "normal");
+        doc.setFontSize(10);
+        const ansText = item.answer ? item.answer : "(Belum ada jawaban)";
+        const splitAns = doc.splitTextToSize(ansText, 160);
+        doc.text(splitAns, 20, yPos + 38);
+
+        doc.line(20, yPos + 58, 185, yPos + 58);
+
+        doc.setFont("courier", "bold");
+        doc.setFontSize(9);
+        doc.text(`ID: ${item.id}`, 20, yPos + 66);
+        doc.text(`DATE: ${item.date}`, 140, yPos + 66);
+
+        doc.setLineDashPattern([], 0);
+        let startX = 135;
+        let zigY = yPos + 75;
+        doc.rect(startX, zigY, 45, 10);
+        doc.text("● ■ ▲", startX + 12, zigY + 7);
+
+        yPos += 95;
+      });
+
+      doc.save(`notes-${targetFolder.toLowerCase().replace(/\s+/g, '-')}.pdf`);
     }
 
     function exportJSON() {
-      if (!notes.length) return alert('Belum ada catatan.');
-      const blob = new Blob([JSON.stringify(notes, null, 2)], { type: 'application/json' });
+      const data = { notes, folders };
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
-      a.download = `question-vault-${new Date().toISOString().slice(0, 10)}.json`;
+      a.download = `mino-notes-backup-${new Date().toISOString().slice(0, 10)}.json`;
       a.click();
     }
 
@@ -485,10 +752,17 @@
       reader.onload = function(evt) {
         try {
           const parsed = JSON.parse(evt.target.result);
-          if (Array.isArray(parsed)) {
+          if (parsed.notes && Array.isArray(parsed.notes)) {
+            notes = parsed.notes;
+            if (parsed.folders && Array.isArray(parsed.folders)) {
+              folders = parsed.folders;
+            }
+            save();
+            alert('Import Data & Folder Berhasil!');
+          } else if (Array.isArray(parsed)) {
             notes = parsed;
             save();
-            alert('Data berhasil di-import!');
+            alert('Import Catatan Berhasil!');
           }
         } catch(err) {
           alert('File JSON tidak valid!');
