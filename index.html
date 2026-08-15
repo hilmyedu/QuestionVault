@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Question Vault - Mobile Responsive 2-Card Folders</title>
+  <title>Mino Notes - Delete Folder Support</title>
   
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -36,7 +36,6 @@
       overflow: hidden;
     }
 
-    /* --- SIDEBAR --- */
     aside {
       width: 240px;
       background: var(--sidebar-bg);
@@ -91,7 +90,6 @@
       color: var(--primary);
     }
 
-    /* --- APP LAYOUT --- */
     #app {
       flex-grow: 1;
       display: flex;
@@ -100,7 +98,6 @@
       overflow: hidden;
     }
 
-    /* --- HEADER & PROFILE DROPDOWN --- */
     header {
       height: 70px;
       background: #ffffff;
@@ -187,7 +184,6 @@
     .dropdown-item:hover { background: #f1f5f9; }
     .dropdown-divider { height: 1px; background: #e2e8f0; margin: 4px 0; }
 
-    /* --- MAIN CONTENT CONTAINER --- */
     .content-area {
       flex-grow: 1;
       padding: 24px 32px;
@@ -201,7 +197,6 @@
       color: #0f172a;
     }
 
-    /* --- FOLDER PAGINATION ROW --- */
     .folder-pagination-wrapper {
       display: flex;
       align-items: center;
@@ -229,7 +224,6 @@
       cursor: not-allowed;
     }
 
-    /* Desktop Grid (Default: 4 Folder + 1 New Folder = 5 Kolom) */
     .folders-grid {
       display: grid;
       grid-template-columns: repeat(5, 1fr);
@@ -240,7 +234,7 @@
     .folder-card {
       background: #fff;
       border-radius: 16px;
-      padding: 16px;
+      padding: 14px;
       cursor: pointer;
       border: 2px solid transparent;
       transition: all 0.2s;
@@ -249,11 +243,18 @@
       flex-direction: column;
       justify-content: space-between;
       min-height: 110px;
+      position: relative;
     }
 
     .folder-card.active {
       border-color: var(--primary);
       box-shadow: 0 4px 12px rgba(37, 99, 235, 0.1);
+    }
+
+    .folder-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
 
     .folder-icon {
@@ -264,6 +265,25 @@
       align-items: center;
       justify-content: center;
       font-size: 16px;
+    }
+
+    /* Tombol Hapus Folder (✖) */
+    .btn-delete-folder {
+      background: none;
+      border: none;
+      color: #94a3b8;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      padding: 2px 6px;
+      border-radius: 6px;
+      line-height: 1;
+      transition: all 0.2s;
+    }
+
+    .btn-delete-folder:hover {
+      color: #ef4444;
+      background: #fee2e2;
     }
 
     .folder-name {
@@ -287,7 +307,6 @@
       gap: 4px;
     }
 
-    /* --- FORM CATATAN --- */
     .form-card {
       background: #fff;
       border-radius: 16px;
@@ -323,7 +342,6 @@
       width: 100%;
     }
 
-    /* --- CATATAN GRID --- */
     .notes-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
@@ -370,29 +388,22 @@
       opacity: 0.6;
     }
 
-    /* --- MOBILE RESPONSIVE STYLES --- */
     @media (max-width: 768px) {
       body { flex-direction: column; }
       aside { display: none; }
       header { padding: 0 16px; }
       .search-box { width: 150px; }
       .content-area { padding: 16px; }
-
-      /* Di Mode HP: Hanya 2 Kolom (1 Slot Folder + 1 Slot New Folder) */
-      .folders-grid { 
-        grid-template-columns: repeat(2, 1fr); 
-      }
-
+      .folders-grid { grid-template-columns: repeat(2, 1fr); }
       .form-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
 
-  <!-- Sidebar Desktop -->
   <aside>
     <div>
-      <div class="brand"><div class="brand-icon"></div> MINI NOTES</div>
+      <div class="brand"><div class="brand-icon"></div> MINO NOTES</div>
       <ul class="nav-menu">
         <li class="nav-item active">📝 All Notes</li>
       </ul>
@@ -402,14 +413,10 @@
     </div>
   </aside>
 
-  <!-- App Wrapper -->
   <div id="app">
-    
-    <!-- Top Header -->
     <header>
       <input type="text" id="searchInput" class="search-box" placeholder="Cari catatan..." oninput="renderNotes()">
       
-      <!-- Profile Area (Dropdown PDF & Backup) -->
       <div class="profile-area">
         <button class="profile-btn" onclick="toggleProfileMenu(event)">
           <div class="avatar">M</div>
@@ -429,20 +436,14 @@
       </div>
     </header>
 
-    <!-- Main Content Container -->
     <div class="content-area">
-      
-      <!-- Folders Top Bar dengan Mobile Responsive Pagination -->
       <h2 class="section-title">Folders / Categories</h2>
       <div class="folder-pagination-wrapper">
         <button class="btn-nav-arrow" id="btnPrevFolder" onclick="changeFolderPage(-1)">◀</button>
-
         <div class="folders-grid" id="foldersContainer"></div>
-
         <button class="btn-nav-arrow" id="btnNextFolder" onclick="changeFolderPage(1)">▶</button>
       </div>
 
-      <!-- Form Tambah Catatan -->
       <div class="form-card">
         <div class="form-grid">
           <input type="text" id="qInput" placeholder="Tulis pertanyaan / ide baru...">
@@ -451,29 +452,23 @@
         <button class="btn-submit" onclick="addNote()">Simpan Catatan</button>
       </div>
 
-      <!-- Catatan Grid -->
       <h2 class="section-title" id="notesTitle">My Notes</h2>
       <div class="notes-grid" id="notesGrid"></div>
-
     </div>
   </div>
 
   <script>
-    const STORAGE_KEY_NOTES = 'mino_notes_responsive_v5';
-    const STORAGE_KEY_FOLDERS = 'mino_folders_responsive_v5';
+    const STORAGE_KEY_NOTES = 'mino_notes_responsive_v6';
+    const STORAGE_KEY_FOLDERS = 'mino_folders_responsive_v6';
     const COLOR_CLASSES = ['card-blue', 'card-pink', 'card-yellow', 'card-green'];
 
     let notes = [];
     let folders = ['All Notes', 'Movie Review', 'Class Notes', 'Book Lists', 'Tech & Code'];
-    
     let activeFolder = 'All Notes';
     let folderCurrentPage = 0;
 
-    // Menentukan limit folder per halaman berdasarkan lebar layar
     function getFoldersPerPage() {
       return window.innerWidth <= 768 ? 1 : 4; 
-      // Layar HP: 1 Slot Folder + 1 Slot New Folder (Total 2 Kartu)
-      // Layar Desktop: 4 Slot Folder + 1 Slot New Folder (Total 5 Kartu)
     }
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -500,7 +495,6 @@
         }
       });
 
-      // Deteksi perubahan ukuran layar (Resize Event)
       window.addEventListener('resize', () => {
         renderFolders();
       });
@@ -517,7 +511,6 @@
       document.getElementById('profileDropdown').classList.toggle('show');
     }
 
-    /* --- DYNAMIC & RESPONSIVE PAGINATION FOLDERS --- */
     function renderFolders() {
       const container = document.getElementById('foldersContainer');
       const select = document.getElementById('folderSelect');
@@ -542,9 +535,18 @@
         const count = f === 'All Notes' ? notes.length : notes.filter(n => n.folder === f).length;
         const color = COLOR_CLASSES[(startIndex + idx) % COLOR_CLASSES.length];
         
+        // Tampilkan tombol Hapus (✖) jika bukan folder default 'All Notes'
+        const isDefaultFolder = (f === 'All Notes');
+        const deleteBtnHtml = isDefaultFolder ? '' : `
+          <button class="btn-delete-folder" title="Hapus Folder" onclick="deleteFolder(event, '${f}')">✖</button>
+        `;
+
         folderHTML += `
           <div class="folder-card ${activeFolder === f ? 'active' : ''}" onclick="selectFolder('${f}')">
-            <div class="folder-icon" style="background:${getBgColor(color)};">📂</div>
+            <div class="folder-top">
+              <div class="folder-icon" style="background:${getBgColor(color)};">📂</div>
+              ${deleteBtnHtml}
+            </div>
             <div>
               <div class="folder-name">${f}</div>
               <div class="folder-count">${count} notes</div>
@@ -553,7 +555,6 @@
         `;
       });
 
-      // Slot New Folder selalu tampil di sebelah kanan folder
       folderHTML += `
         <div class="folder-card folder-add-btn" onclick="addCustomFolder()">
           <div style="font-size: 20px; font-weight: bold;">+</div>
@@ -563,7 +564,6 @@
 
       container.innerHTML = folderHTML;
 
-      // Sync pilihan pada select dropdown form
       const availableFoldersForSelect = folders.filter(f => f !== 'All Notes');
       select.innerHTML = availableFoldersForSelect.map(f => `
         <option value="${f}" ${f === activeFolder ? 'selected' : ''}>${f}</option>
@@ -595,7 +595,43 @@
       }
     }
 
-    /* --- CATATAN RENDER LOGIC --- */
+    /* --- FUNGSI HAPUS FOLDER --- */
+    function deleteFolder(event, folderName) {
+      event.stopPropagation(); // Mencegah klik beralih ke folder saat tombol hapus ditekan
+
+      if (folderName === 'All Notes') return;
+
+      const notesInFolder = notes.filter(n => n.folder === folderName).length;
+      let confirmMsg = `Yakin ingin menghapus folder "${folderName}"?`;
+      if (notesInFolder > 0) {
+        confirmMsg += `\n\nAda ${notesInFolder} catatan di folder ini. Catatan akan dipindahkan ke folder 'General'.`;
+      }
+
+      if (confirm(confirmMsg)) {
+        // Hapus nama folder dari array
+        folders = folders.filter(f => f !== folderName);
+
+        // Pindahkan catatan dari folder yang dihapus ke folder 'General'
+        notes.forEach(n => {
+          if (n.folder === folderName) {
+            n.folder = 'General';
+          }
+        });
+
+        // Pastikan 'General' ada di list jika digunakan
+        if (notes.some(n => n.folder === 'General') && !folders.includes('General')) {
+          folders.push('General');
+        }
+
+        // Jika folder yang sedang dibuka dihapus, kembalikan ke 'All Notes'
+        if (activeFolder === folderName) {
+          activeFolder = 'All Notes';
+        }
+
+        save();
+      }
+    }
+
     function renderNotes() {
       const grid = document.getElementById('notesGrid');
       const title = document.getElementById('notesTitle');
@@ -628,7 +664,7 @@
             <textarea class="note-ans" placeholder="Tulis jawaban..." oninput="updateAnswer(${n.id}, this.value)">${escapeHtml(n.answer)}</textarea>
             <div class="note-foot">
               <span>ID: ${n.id.toString().slice(-4)}</span>
-              <button style="background:none; border:none; color:#ef4444; font-weight:600; cursor:pointer;" onclick="deleteNote(${n.id})">Hapus</button>
+              <button style="background:none; border:none; color:#ef4444; font-weight:600; cursor:pointer;" onclick="deleteNote(${n.id})">Hapus Note</button>
             </div>
           </div>
         `;
@@ -689,7 +725,6 @@
       return (str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
     }
 
-    /* --- RETRO BRUTALIST PDF EXPORT --- */
     function exportPDF(targetFolder) {
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
