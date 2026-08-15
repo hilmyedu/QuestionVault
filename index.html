@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Question Vault - Dynamic Folders & Pagination</title>
+  <title>Question Vault - Mobile Responsive 2-Card Folders</title>
   
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -229,6 +229,7 @@
       cursor: not-allowed;
     }
 
+    /* Desktop Grid (Default: 4 Folder + 1 New Folder = 5 Kolom) */
     .folders-grid {
       display: grid;
       grid-template-columns: repeat(5, 1fr);
@@ -369,20 +370,26 @@
       opacity: 0.6;
     }
 
-    @media (max-width: 900px) {
+    /* --- MOBILE RESPONSIVE STYLES --- */
+    @media (max-width: 768px) {
       body { flex-direction: column; }
       aside { display: none; }
       header { padding: 0 16px; }
-      .search-box { width: 160px; }
+      .search-box { width: 150px; }
       .content-area { padding: 16px; }
-      .folders-grid { grid-template-columns: repeat(2, 1fr); }
+
+      /* Di Mode HP: Hanya 2 Kolom (1 Slot Folder + 1 Slot New Folder) */
+      .folders-grid { 
+        grid-template-columns: repeat(2, 1fr); 
+      }
+
       .form-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
 
-  <!-- Sidebar -->
+  <!-- Sidebar Desktop -->
   <aside>
     <div>
       <div class="brand"><div class="brand-icon"></div> MINI NOTES</div>
@@ -398,13 +405,14 @@
   <!-- App Wrapper -->
   <div id="app">
     
-    <!-- Top Header & Dropdown PDF -->
+    <!-- Top Header -->
     <header>
       <input type="text" id="searchInput" class="search-box" placeholder="Cari catatan..." oninput="renderNotes()">
       
+      <!-- Profile Area (Dropdown PDF & Backup) -->
       <div class="profile-area">
         <button class="profile-btn" onclick="toggleProfileMenu(event)">
-          <div class="avatar"><b>;</b></div>
+          <div class="avatar">M</div>
           <span style="font-size: 13px; font-weight: 700;">Profile ▾</span>
         </button>
 
@@ -421,10 +429,10 @@
       </div>
     </header>
 
-    <!-- Content Container -->
+    <!-- Main Content Container -->
     <div class="content-area">
       
-      <!-- Folders Top Bar dengan Pagination (4 Folder Max + 1 New Folder) -->
+      <!-- Folders Top Bar dengan Mobile Responsive Pagination -->
       <h2 class="section-title">Folders / Categories</h2>
       <div class="folder-pagination-wrapper">
         <button class="btn-nav-arrow" id="btnPrevFolder" onclick="changeFolderPage(-1)">◀</button>
@@ -434,7 +442,7 @@
         <button class="btn-nav-arrow" id="btnNextFolder" onclick="changeFolderPage(1)">▶</button>
       </div>
 
-      <!-- Form Buat Catatan -->
+      <!-- Form Tambah Catatan -->
       <div class="form-card">
         <div class="form-grid">
           <input type="text" id="qInput" placeholder="Tulis pertanyaan / ide baru...">
@@ -451,8 +459,8 @@
   </div>
 
   <script>
-    const STORAGE_KEY_NOTES = 'mino_notes_dynamic_v4';
-    const STORAGE_KEY_FOLDERS = 'mino_folders_dynamic_v4';
+    const STORAGE_KEY_NOTES = 'mino_notes_responsive_v5';
+    const STORAGE_KEY_FOLDERS = 'mino_folders_responsive_v5';
     const COLOR_CLASSES = ['card-blue', 'card-pink', 'card-yellow', 'card-green'];
 
     let notes = [];
@@ -460,10 +468,15 @@
     
     let activeFolder = 'All Notes';
     let folderCurrentPage = 0;
-    const FOLDERS_PER_PAGE = 4; // Max 4 folder per halaman, slot ke-5 untuk + New Folder
+
+    // Menentukan limit folder per halaman berdasarkan lebar layar
+    function getFoldersPerPage() {
+      return window.innerWidth <= 768 ? 1 : 4; 
+      // Layar HP: 1 Slot Folder + 1 Slot New Folder (Total 2 Kartu)
+      // Layar Desktop: 4 Slot Folder + 1 Slot New Folder (Total 5 Kartu)
+    }
 
     document.addEventListener('DOMContentLoaded', () => {
-      // Load saved notes & folders
       const savedNotes = localStorage.getItem(STORAGE_KEY_NOTES);
       if (savedNotes) {
         try { notes = JSON.parse(savedNotes); } catch(e) { notes = []; }
@@ -474,7 +487,6 @@
         try { folders = JSON.parse(savedFolders); } catch(e) {}
       }
       
-      // Sinkronisasi folder dari catatan yang tersimpan
       const customFoldersFromNotes = [...new Set(notes.map(n => n.folder))];
       customFoldersFromNotes.forEach(f => {
         if (f && !folders.includes(f)) folders.push(f);
@@ -486,6 +498,11 @@
         if (!e.target.closest('.profile-area')) {
           document.getElementById('profileDropdown').classList.remove('show');
         }
+      });
+
+      // Deteksi perubahan ukuran layar (Resize Event)
+      window.addEventListener('resize', () => {
+        renderFolders();
       });
     });
 
@@ -500,14 +517,15 @@
       document.getElementById('profileDropdown').classList.toggle('show');
     }
 
-    /* --- DYNAMIC FOLDERS & PAGINATION --- */
+    /* --- DYNAMIC & RESPONSIVE PAGINATION FOLDERS --- */
     function renderFolders() {
       const container = document.getElementById('foldersContainer');
       const select = document.getElementById('folderSelect');
       const prevBtn = document.getElementById('btnPrevFolder');
       const nextBtn = document.getElementById('btnNextFolder');
 
-      const totalPages = Math.ceil(folders.length / FOLDERS_PER_PAGE) || 1;
+      const foldersPerPage = getFoldersPerPage();
+      const totalPages = Math.ceil(folders.length / foldersPerPage) || 1;
       
       if (folderCurrentPage < 0) folderCurrentPage = 0;
       if (folderCurrentPage >= totalPages) folderCurrentPage = totalPages - 1;
@@ -515,14 +533,14 @@
       prevBtn.disabled = (folderCurrentPage === 0);
       nextBtn.disabled = (folderCurrentPage >= totalPages - 1);
 
-      const startIndex = folderCurrentPage * FOLDERS_PER_PAGE;
-      const visibleFolders = folders.slice(startIndex, startIndex + FOLDERS_PER_PAGE);
+      const startIndex = folderCurrentPage * foldersPerPage;
+      const visibleFolders = folders.slice(startIndex, startIndex + foldersPerPage);
 
       let folderHTML = '';
 
       visibleFolders.forEach((f, idx) => {
         const count = f === 'All Notes' ? notes.length : notes.filter(n => n.folder === f).length;
-        const color = COLOR_CLASSES[idx % COLOR_CLASSES.length];
+        const color = COLOR_CLASSES[(startIndex + idx) % COLOR_CLASSES.length];
         
         folderHTML += `
           <div class="folder-card ${activeFolder === f ? 'active' : ''}" onclick="selectFolder('${f}')">
@@ -535,7 +553,7 @@
         `;
       });
 
-      // Slot 5: Tombol Tambah Folder Baru
+      // Slot New Folder selalu tampil di sebelah kanan folder
       folderHTML += `
         <div class="folder-card folder-add-btn" onclick="addCustomFolder()">
           <div style="font-size: 20px; font-weight: bold;">+</div>
@@ -545,7 +563,7 @@
 
       container.innerHTML = folderHTML;
 
-      // Update Opsi Folder pada Form
+      // Sync pilihan pada select dropdown form
       const availableFoldersForSelect = folders.filter(f => f !== 'All Notes');
       select.innerHTML = availableFoldersForSelect.map(f => `
         <option value="${f}" ${f === activeFolder ? 'selected' : ''}>${f}</option>
@@ -570,13 +588,14 @@
           folders.push(trimmed);
         }
         activeFolder = trimmed;
-        // Pindah otomatis ke halaman tempat folder baru berada
-        folderCurrentPage = Math.floor((folders.length - 1) / FOLDERS_PER_PAGE);
+        
+        const foldersPerPage = getFoldersPerPage();
+        folderCurrentPage = Math.floor((folders.length - 1) / foldersPerPage);
         save();
       }
     }
 
-    /* --- RENDER CATATAN --- */
+    /* --- CATATAN RENDER LOGIC --- */
     function renderNotes() {
       const grid = document.getElementById('notesGrid');
       const title = document.getElementById('notesTitle');
@@ -670,7 +689,7 @@
       return (str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
     }
 
-    /* --- RETRO PDF EXPORT --- */
+    /* --- RETRO BRUTALIST PDF EXPORT --- */
     function exportPDF(targetFolder) {
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
