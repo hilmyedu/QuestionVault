@@ -624,7 +624,7 @@
     </div>
   </div>
 
-  <script>
+   <script>
     const STORAGE_KEY_NOTES = 'mino_notes_responsive_v7';
     const STORAGE_KEY_FOLDERS = 'mino_folders_responsive_v7';
     const COLOR_CLASSES = ['card-blue', 'card-pink', 'card-yellow', 'card-green'];
@@ -754,570 +754,16 @@
         if (!folders.includes(trimmed)) {
           folders.push(trimmed);
         }
-        activeFolder = trimme    }
-
-    aside {
-      width: 240px;
-      background: var(--sidebar-bg);
-      padding: 24px 16px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      border-right: 1px solid #e2e8f0;
-      flex-shrink: 0;
-    }
-
-    .brand {
-      font-weight: 800;
-      font-size: 20px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding-left: 10px;
-    }
-
-    .brand-icon {
-      width: 12px;
-      height: 12px;
-      background: var(--primary);
-      border-radius: 50%;
-      box-shadow: 14px 0 0 #ef4444, 28px 0 0 #eab308;
-    }
-
-    .nav-menu {
-      margin-top: 30px;
-      list-style: none;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .nav-item {
-      padding: 12px 16px;
-      border-radius: 12px;
-      font-size: 14px;
-      font-weight: 600;
-      color: var(--text-muted);
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      transition: all 0.2s;
-    }
-
-    .nav-item:hover, .nav-item.active {
-      background: #eff6ff;
-      color: var(--primary);
-    }
-
-    #app {
-      flex-grow: 1;
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
-      overflow: hidden;
-    }
-
-    header {
-      height: 70px;
-      background: #ffffff;
-      border-bottom: 1px solid #e2e8f0;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 32px;
-      flex-shrink: 0;
-    }
-
-    .search-box {
-      background: var(--bg-app);
-      padding: 10px 18px;
-      border-radius: 20px;
-      border: 1px solid #e2e8f0;
-      width: 280px;
-      font-size: 14px;
-      outline: none;
-    }
-
-    .profile-area { position: relative; }
-
-    .profile-btn {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      background: none;
-      border: none;
-      cursor: pointer;
-      padding: 6px 12px;
-      border-radius: 30px;
-      transition: background 0.2s;
-    }
-
-    .profile-btn:hover { background: var(--bg-app); }
-
-    .avatar {
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      background: #3b82f6;
-      color: #fff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 700;
-      font-size: 14px;
-    }
-
-    .dropdown-menu {
-      position: absolute;
-      right: 0;
-      top: 50px;
-      background: #fff;
-      border: 1px solid #e2e8f0;
-      border-radius: 16px;
-      width: 230px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.08);
-      display: none;
-      flex-direction: column;
-      padding: 8px;
-      z-index: 100;
-    }
-
-    .dropdown-menu.show { display: flex; }
-
-    .dropdown-item {
-      padding: 10px 14px;
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--text-main);
-      border-radius: 10px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      border: none;
-      background: none;
-      width: 100%;
-      text-align: left;
-    }
-
-    .dropdown-item:hover { background: #f1f5f9; }
-    .dropdown-divider { height: 1px; background: #e2e8f0; margin: 4px 0; }
-
-    .content-area {
-      flex-grow: 1;
-      padding: 24px 32px;
-      overflow-y: auto;
-    }
-
-    .section-title {
-      font-size: 16px;
-      font-weight: 700;
-      margin-bottom: 14px;
-      color: #0f172a;
-    }
-
-    .folder-pagination-wrapper {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 28px;
-    }
-
-    .btn-nav-arrow {
-      background: #fff;
-      border: 1px solid #cbd5e1;
-      border-radius: 50%;
-      width: 36px;
-      height: 36px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      font-weight: bold;
-      flex-shrink: 0;
-      user-select: none;
-    }
-
-    .btn-nav-arrow:disabled {
-      opacity: 0.3;
-      cursor: not-allowed;
-    }
-
-    .folders-grid {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 14px;
-      flex-grow: 1;
-    }
-
-    .folder-card {
-      background: #fff;
-      border-radius: 16px;
-      padding: 14px;
-      cursor: pointer;
-      border: 2px solid transparent;
-      transition: all 0.2s;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.02);
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      min-height: 110px;
-      position: relative;
-    }
-
-    .folder-card.active {
-      border-color: var(--primary);
-      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.1);
-    }
-
-    .folder-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .folder-icon {
-      width: 32px;
-      height: 32px;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 16px;
-    }
-
-    /* Tombol Hapus Folder (✖) */
-    .btn-delete-folder {
-      background: none;
-      border: none;
-      color: #94a3b8;
-      font-size: 14px;
-      font-weight: bold;
-      cursor: pointer;
-      padding: 2px 6px;
-      border-radius: 6px;
-      line-height: 1;
-      transition: all 0.2s;
-    }
-
-    .btn-delete-folder:hover {
-      color: #ef4444;
-      background: #fee2e2;
-    }
-
-    .folder-name {
-      font-weight: 700;
-      font-size: 13px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .folder-count {
-      font-size: 11px;
-      color: var(--text-muted);
-    }
-
-    .folder-add-btn {
-      border: 2px dashed #cbd5e1;
-      background: transparent;
-      align-items: center;
-      justify-content: center;
-      gap: 4px;
-    }
-
-    .form-card {
-      background: #fff;
-      border-radius: 16px;
-      padding: 18px;
-      margin-bottom: 28px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.02);
-      border: 1px solid #e2e8f0;
-    }
-
-    .form-grid {
-      display: grid;
-      grid-template-columns: 2fr 1fr;
-      gap: 12px;
-      margin-bottom: 12px;
-    }
-
-    input[type="text"], select {
-      padding: 10px 14px;
-      border-radius: 10px;
-      border: 1px solid #cbd5e1;
-      font-size: 14px;
-      outline: none;
-    }
-
-    .btn-submit {
-      background: var(--text-main);
-      color: #fff;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 10px;
-      font-weight: 600;
-      cursor: pointer;
-      width: 100%;
-    }
-
-    .notes-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-      gap: 20px;
-    }
-
-    .note-card {
-      border-radius: 18px;
-      padding: 18px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      min-height: 220px;
-    }
-
-    .note-tag {
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      opacity: 0.6;
-      margin-bottom: 6px;
-    }
-
-    .note-q { font-size: 15px; font-weight: 700; margin-bottom: 10px; }
-
-    .note-ans {
-      background: rgba(255,255,255,0.5);
-      border: 1px solid rgba(0,0,0,0.08);
-      border-radius: 10px;
-      padding: 8px 12px;
-      font-size: 13px;
-      width: 100%;
-      height: 75px;
-      resize: none;
-      outline: none;
-    }
-
-    .note-foot {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: 10px;
-      font-size: 11px;
-      opacity: 0.6;
-    }
-
-    @media (max-width: 768px) {
-      body { flex-direction: column; }
-      aside { display: none; }
-      header { padding: 0 16px; }
-      .search-box { width: 150px; }
-      .content-area { padding: 16px; }
-      .folders-grid { grid-template-columns: repeat(2, 1fr); }
-      .form-grid { grid-template-columns: 1fr; }
-    }
-  </style>
-</head>
-<body>
-
-  <aside>
-    <div>
-      <div class="brand"><div class="brand-icon"></div> MINO NOTES</div>
-      <ul class="nav-menu">
-        <li class="nav-item active">📝 All Notes</li>
-      </ul>
-    </div>
-    <div style="font-size: 11px; color: var(--text-muted);">
-      Storage: Local Browser
-    </div>
-  </aside>
-
-  <div id="app">
-    <header>
-      <input type="text" id="searchInput" class="search-box" placeholder="Cari catatan..." oninput="renderNotes()">
-      
-      <div class="profile-area">
-        <button class="profile-btn" onclick="toggleProfileMenu(event)">
-          <div class="avatar">M</div>
-          <span style="font-size: 13px; font-weight: 700;">Profile ▾</span>
-        </button>
-
-        <div class="dropdown-menu" id="profileDropdown">
-          <button class="dropdown-item" onclick="exportPDF('All Notes')">📄 Download All PDF</button>
-          <button class="dropdown-item" onclick="exportPDF(activeFolder)">📑 Download PDF (Folder Ini)</button>
-          <div class="dropdown-divider"></div>
-          <button class="dropdown-item" onclick="exportJSON()">💾 Export JSON</button>
-          <label class="dropdown-item" style="cursor: pointer;">
-            📂 Import JSON
-            <input type="file" id="importFile" accept=".json" onchange="importJSON(event)" style="display:none;">
-          </label>
-        </div>
-      </div>
-    </header>
-
-    <div class="content-area">
-      <h2 class="section-title">Folders / Categories</h2>
-      <div class="folder-pagination-wrapper">
-        <button class="btn-nav-arrow" id="btnPrevFolder" onclick="changeFolderPage(-1)">◀</button>
-        <div class="folders-grid" id="foldersContainer"></div>
-        <button class="btn-nav-arrow" id="btnNextFolder" onclick="changeFolderPage(1)">▶</button>
-      </div>
-
-      <div class="form-card">
-        <div class="form-grid">
-          <input type="text" id="qInput" placeholder="Tulis pertanyaan / ide baru...">
-          <select id="folderSelect"></select>
-        </div>
-        <button class="btn-submit" onclick="addNote()">Simpan Catatan</button>
-      </div>
-
-      <h2 class="section-title" id="notesTitle">My Notes</h2>
-      <div class="notes-grid" id="notesGrid"></div>
-    </div>
-  </div>
-
-  <script>
-    const STORAGE_KEY_NOTES = 'mino_notes_responsive_v6';
-    const STORAGE_KEY_FOLDERS = 'mino_folders_responsive_v6';
-    const COLOR_CLASSES = ['card-blue', 'card-pink', 'card-yellow', 'card-green'];
-
-    let notes = [];
-    let folders = ['All Notes', 'Movie Review', 'Class Notes', 'Book Lists', 'Tech & Code'];
-    let activeFolder = 'All Notes';
-    let folderCurrentPage = 0;
-
-    function getFoldersPerPage() {
-      return window.innerWidth <= 768 ? 1 : 4; 
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-      const savedNotes = localStorage.getItem(STORAGE_KEY_NOTES);
-      if (savedNotes) {
-        try { notes = JSON.parse(savedNotes); } catch(e) { notes = []; }
-      }
-
-      const savedFolders = localStorage.getItem(STORAGE_KEY_FOLDERS);
-      if (savedFolders) {
-        try { folders = JSON.parse(savedFolders); } catch(e) {}
-      }
-      
-      const customFoldersFromNotes = [...new Set(notes.map(n => n.folder))];
-      customFoldersFromNotes.forEach(f => {
-        if (f && !folders.includes(f)) folders.push(f);
-      });
-
-      render();
-
-      document.addEventListener('click', (e) => {
-        if (!e.target.closest('.profile-area')) {
-          document.getElementById('profileDropdown').classList.remove('show');
-        }
-      });
-
-      window.addEventListener('resize', () => {
-        renderFolders();
-      });
-    });
-
-    function save() {
-      localStorage.setItem(STORAGE_KEY_NOTES, JSON.stringify(notes));
-      localStorage.setItem(STORAGE_KEY_FOLDERS, JSON.stringify(folders));
-      render();
-    }
-
-    function toggleProfileMenu(e) {
-      e.stopPropagation();
-      document.getElementById('profileDropdown').classList.toggle('show');
-    }
-
-    function renderFolders() {
-      const container = document.getElementById('foldersContainer');
-      const select = document.getElementById('folderSelect');
-      const prevBtn = document.getElementById('btnPrevFolder');
-      const nextBtn = document.getElementById('btnNextFolder');
-
-      const foldersPerPage = getFoldersPerPage();
-      const totalPages = Math.ceil(folders.length / foldersPerPage) || 1;
-      
-      if (folderCurrentPage < 0) folderCurrentPage = 0;
-      if (folderCurrentPage >= totalPages) folderCurrentPage = totalPages - 1;
-
-      prevBtn.disabled = (folderCurrentPage === 0);
-      nextBtn.disabled = (folderCurrentPage >= totalPages - 1);
-
-      const startIndex = folderCurrentPage * foldersPerPage;
-      const visibleFolders = folders.slice(startIndex, startIndex + foldersPerPage);
-
-      let folderHTML = '';
-
-      visibleFolders.forEach((f, idx) => {
-        const count = f === 'All Notes' ? notes.length : notes.filter(n => n.folder === f).length;
-        const color = COLOR_CLASSES[(startIndex + idx) % COLOR_CLASSES.length];
-        
-        // Tampilkan tombol Hapus (✖) jika bukan folder default 'All Notes'
-        const isDefaultFolder = (f === 'All Notes');
-        const deleteBtnHtml = isDefaultFolder ? '' : `
-          <button class="btn-delete-folder" title="Hapus Folder" onclick="deleteFolder(event, '${f}')">✖</button>
-        `;
-
-        folderHTML += `
-          <div class="folder-card ${activeFolder === f ? 'active' : ''}" onclick="selectFolder('${f}')">
-            <div class="folder-top">
-              <div class="folder-icon" style="background:${getBgColor(color)};">📂</div>
-              ${deleteBtnHtml}
-            </div>
-            <div>
-              <div class="folder-name">${f}</div>
-              <div class="folder-count">${count} notes</div>
-            </div>
-          </div>
-        `;
-      });
-
-      folderHTML += `
-        <div class="folder-card folder-add-btn" onclick="addCustomFolder()">
-          <div style="font-size: 20px; font-weight: bold;">+</div>
-          <div class="folder-name">New Folder</div>
-        </div>
-      `;
-
-      container.innerHTML = folderHTML;
-
-      const availableFoldersForSelect = folders.filter(f => f !== 'All Notes');
-      select.innerHTML = availableFoldersForSelect.map(f => `
-        <option value="${f}" ${f === activeFolder ? 'selected' : ''}>${f}</option>
-      `).join('');
-    }
-
-    function changeFolderPage(dir) {
-      folderCurrentPage += dir;
-      renderFolders();
-    }
-
-    function selectFolder(fName) {
-      activeFolder = fName;
-      render();
-    }
-
-    function addCustomFolder() {
-      const name = prompt('Masukkan Nama Folder/Kategori Baru:');
-      if (name && name.trim() !== '') {
-        const trimmed = name.trim();
-        if (!folders.includes(trimmed)) {
-          folders.push(trimmed);
-        }
         activeFolder = trimmed;
-        
+
         const foldersPerPage = getFoldersPerPage();
         folderCurrentPage = Math.floor((folders.length - 1) / foldersPerPage);
         save();
       }
     }
 
-    /* --- FUNGSI HAPUS FOLDER --- */
     function deleteFolder(event, folderName) {
-      event.stopPropagation(); // Mencegah klik beralih ke folder saat tombol hapus ditekan
+      event.stopPropagation();
 
       if (folderName === 'All Notes') return;
 
@@ -1328,22 +774,18 @@
       }
 
       if (confirm(confirmMsg)) {
-        // Hapus nama folder dari array
         folders = folders.filter(f => f !== folderName);
 
-        // Pindahkan catatan dari folder yang dihapus ke folder 'General'
         notes.forEach(n => {
           if (n.folder === folderName) {
             n.folder = 'General';
           }
         });
 
-        // Pastikan 'General' ada di list jika digunakan
         if (notes.some(n => n.folder === 'General') && !folders.includes('General')) {
           folders.push('General');
         }
 
-        // Jika folder yang sedang dibuka dihapus, kembalikan ke 'All Notes'
         if (activeFolder === folderName) {
           activeFolder = 'All Notes';
         }
@@ -1352,18 +794,96 @@
       }
     }
 
+    /* ---------- MODAL: Buat / Edit Catatan ---------- */
+
+    function openModal() {
+      editingId = null;
+      document.getElementById('modalTitleLabel').innerText = 'Catatan Baru';
+      document.getElementById('qInput').value = '';
+      document.getElementById('editor').innerHTML = '';
+
+      const select = document.getElementById('folderSelect');
+      if (activeFolder !== 'All Notes') {
+        select.value = activeFolder;
+      } else if (select.options.length > 0) {
+        select.selectedIndex = 0;
+      }
+
+      document.getElementById('modalOverlay').classList.add('active');
+      document.getElementById('qInput').focus();
+    }
+
+    function editNote(id) {
+      const n = notes.find(item => item.id === id);
+      if (!n) return;
+
+      editingId = id;
+      document.getElementById('modalTitleLabel').innerText = 'Edit Catatan';
+      document.getElementById('qInput').value = n.question;
+      document.getElementById('editor').innerHTML = n.answer;
+      document.getElementById('folderSelect').value = n.folder;
+
+      document.getElementById('modalOverlay').classList.add('active');
+    }
+
+    function closeModal() {
+      document.getElementById('modalOverlay').classList.remove('active');
+      editingId = null;
+    }
+
+    function execCmd(cmd) {
+      document.execCommand(cmd, false, null);
+      document.getElementById('editor').focus();
+    }
+
+    function saveNote() {
+      const q = document.getElementById('qInput').value.trim();
+      const content = document.getElementById('editor').innerHTML.trim();
+      let f = document.getElementById('folderSelect').value;
+      if (!f) f = 'General';
+
+      if (!q) { alert('Pertanyaan / judul tidak boleh kosong!'); return; }
+
+      if (editingId) {
+        const n = notes.find(item => item.id === editingId);
+        if (n) {
+          n.question = q;
+          n.answer = content;
+          n.folder = f;
+        }
+      } else {
+        const randomColor = COLOR_CLASSES[Math.floor(Math.random() * COLOR_CLASSES.length)];
+        notes.unshift({
+          id: Date.now(),
+          question: q,
+          answer: content,
+          folder: f,
+          color: randomColor,
+          date: new Date().toLocaleDateString('en-GB')
+        });
+      }
+
+      closeModal();
+      save();
+    }
+
+    /* ---------- NOTES LIST ---------- */
+
     function renderNotes() {
       const grid = document.getElementById('notesGrid');
       const title = document.getElementById('notesTitle');
       const search = document.getElementById('searchInput').value.toLowerCase();
-      
+
       title.innerText = activeFolder === 'All Notes' ? 'My Notes (All)' : `My Notes: ${activeFolder}`;
       grid.innerHTML = '';
 
       let list = activeFolder === 'All Notes' ? notes : notes.filter(n => n.folder === activeFolder);
-      
+
       if (search) {
-        list = list.filter(n => n.question.toLowerCase().includes(search) || n.answer.toLowerCase().includes(search));
+        list = list.filter(n =>
+          n.question.toLowerCase().includes(search) ||
+          stripHtml(n.answer).toLowerCase().includes(search)
+        );
       }
 
       if (list.length === 0) {
@@ -1377,49 +897,22 @@
         el.style.backgroundColor = getBgColor(n.color);
         el.innerHTML = `
           <div>
-            <div class="note-tag">${n.folder} • ${n.date}</div>
+            <div class="note-tag">${escapeHtml(n.folder)} • ${n.date}</div>
             <div class="note-q">${escapeHtml(n.question)}</div>
           </div>
           <div>
-            <textarea class="note-ans" placeholder="Tulis jawaban..." oninput="updateAnswer(${n.id}, this.value)">${escapeHtml(n.answer)}</textarea>
+            <div class="note-content">${n.answer || ''}</div>
             <div class="note-foot">
               <span>ID: ${n.id.toString().slice(-4)}</span>
-              <button style="background:none; border:none; color:#ef4444; font-weight:600; cursor:pointer;" onclick="deleteNote(${n.id})">Hapus Note</button>
+              <div class="note-foot-actions">
+                <button class="btn-edit-note" onclick="editNote(${n.id})">Edit</button>
+                <button class="btn-delete-note" onclick="deleteNote(${n.id})">Hapus Note</button>
+              </div>
             </div>
           </div>
         `;
         grid.appendChild(el);
       });
-    }
-
-    function addNote() {
-      const q = document.getElementById('qInput').value.trim();
-      let f = document.getElementById('folderSelect').value;
-      if (!q) return;
-
-      if (!f) f = 'General';
-
-      const randomColor = COLOR_CLASSES[Math.floor(Math.random() * COLOR_CLASSES.length)];
-      
-      notes.unshift({
-        id: Date.now(),
-        question: q,
-        answer: '',
-        folder: f,
-        color: randomColor,
-        date: new Date().toLocaleDateString('en-GB')
-      });
-
-      document.getElementById('qInput').value = '';
-      save();
-    }
-
-    function updateAnswer(id, txt) {
-      const n = notes.find(item => item.id === id);
-      if (n) {
-        n.answer = txt;
-        localStorage.setItem(STORAGE_KEY_NOTES, JSON.stringify(notes));
-      }
     }
 
     function deleteNote(id) {
@@ -1445,77 +938,64 @@
       return (str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
     }
 
+    function stripHtml(html) {
+      const tmp = document.createElement('div');
+      tmp.innerHTML = html || '';
+      return tmp.textContent || tmp.innerText || '';
+    }
+
+    /* ---------- EXPORT / IMPORT ---------- */
+
     function exportPDF(targetFolder) {
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
-      
-      let dataToExport = targetFolder === 'All Notes' ? notes : notes.filter(n => n.folder === targetFolder);
+      const list = (!targetFolder || targetFolder === 'All Notes')
+        ? notes
+        : notes.filter(n => n.folder === targetFolder);
 
-      if (dataToExport.length === 0) {
-        alert('Tidak ada catatan untuk di-export.');
+      if (list.length === 0) {
+        alert('Tidak ada catatan untuk diekspor pada folder ini.');
         return;
       }
 
-      let yPos = 20;
+      const marginX = 14;
+      let y = 18;
+      const pageHeight = doc.internal.pageSize.getHeight();
 
-      dataToExport.forEach((item) => {
-        if (yPos > 230) {
+      doc.setFontSize(16);
+      doc.text(`Mino Notes - ${targetFolder || 'All Notes'}`, marginX, y);
+      y += 10;
+      doc.setFontSize(10);
+
+      list.forEach((n, idx) => {
+        const qLines = doc.splitTextToSize(`${idx + 1}. ${n.question} (${n.folder} • ${n.date})`, 180);
+        const aLines = doc.splitTextToSize(stripHtml(n.answer) || '-', 180);
+
+        const blockHeight = (qLines.length + aLines.length) * 5 + 8;
+        if (y + blockHeight > pageHeight - 15) {
           doc.addPage();
-          yPos = 20;
+          y = 18;
         }
 
-        doc.setLineWidth(0.8);
-        doc.setDrawColor(0, 0, 0);
-        doc.rect(15, yPos, 180, 75);
+        doc.setFont(undefined, 'bold');
+        doc.text(qLines, marginX, y);
+        y += qLines.length * 5 + 2;
 
-        doc.rect(130, yPos - 8, 60, 8);
-        doc.setFont("courier", "bold");
-        doc.setFontSize(9);
-        doc.text(`CATALOG: ${item.folder.substring(0, 12)}`, 133, yPos - 2);
-
-        doc.setFontSize(36);
-        doc.setFont("helvetica", "bold");
-        doc.text("“", 20, yPos + 18);
-
-        doc.setFont("courier", "bold");
-        doc.setFontSize(11);
-        const splitQ = doc.splitTextToSize(item.question, 145);
-        doc.text(splitQ, 35, yPos + 12);
-
-        doc.setLineDashPattern([2, 2], 0);
-        doc.line(20, yPos + 30, 185, yPos + 30);
-
-        doc.setFont("courier", "normal");
-        doc.setFontSize(10);
-        const ansText = item.answer ? item.answer : "(Belum ada jawaban)";
-        const splitAns = doc.splitTextToSize(ansText, 160);
-        doc.text(splitAns, 20, yPos + 38);
-
-        doc.line(20, yPos + 58, 185, yPos + 58);
-
-        doc.setFont("courier", "bold");
-        doc.setFontSize(9);
-        doc.text(`ID: ${item.id}`, 20, yPos + 66);
-        doc.text(`DATE: ${item.date}`, 140, yPos + 66);
-
-        doc.setLineDashPattern([], 0);
-        let startX = 135;
-        let zigY = yPos + 75;
-        doc.rect(startX, zigY, 45, 10);
-        doc.text("● ■ ▲", startX + 12, zigY + 7);
-
-        yPos += 95;
+        doc.setFont(undefined, 'normal');
+        doc.text(aLines, marginX, y);
+        y += aLines.length * 5 + 6;
       });
 
-      doc.save(`notes-${targetFolder.toLowerCase().replace(/\s+/g, '-')}.pdf`);
+      doc.save(`mino_notes_${(targetFolder || 'all').replace(/\s+/g, '_')}_${Date.now()}.pdf`);
     }
 
     function exportJSON() {
-      const data = { notes, folders };
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      if (!notes.length) { alert('Data kosong.'); return; }
+      const payload = { notes, folders };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
-      a.download = `mino-notes-backup-${new Date().toISOString().slice(0, 10)}.json`;
+      a.download = `mino_notes_backup_${Date.now()}.json`;
       a.click();
     }
 
@@ -1523,26 +1003,23 @@
       const file = e.target.files[0];
       if (!file) return;
       const reader = new FileReader();
-      reader.onload = function(evt) {
+      reader.onload = (evt) => {
         try {
-          const parsed = JSON.parse(evt.target.result);
-          if (parsed.notes && Array.isArray(parsed.notes)) {
-            notes = parsed.notes;
-            if (parsed.folders && Array.isArray(parsed.folders)) {
-              folders = parsed.folders;
-            }
-            save();
-            alert('Import Data & Folder Berhasil!');
-          } else if (Array.isArray(parsed)) {
-            notes = parsed;
-            save();
-            alert('Import Catatan Berhasil!');
+          const imported = JSON.parse(evt.target.result);
+          if (Array.isArray(imported)) {
+            notes = imported;
+          } else if (imported && Array.isArray(imported.notes)) {
+            notes = imported.notes;
+            if (Array.isArray(imported.folders)) folders = imported.folders;
+          } else {
+            throw new Error('Format tidak dikenali');
           }
-        } catch(err) {
-          alert('File JSON tidak valid!');
-        }
+          save();
+          alert('Import berhasil!');
+        } catch { alert('File JSON tidak valid.'); }
       };
       reader.readAsText(file);
+      e.target.value = '';
     }
   </script>
 </body>
