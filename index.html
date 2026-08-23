@@ -1,1402 +1,986 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mino Notes - Paper Edition</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<title>Mino Notes - Notebook Edition</title>
 
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Merriweather:wght@400;700;900&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
-  <style>
-    :root {
-      --bg-app: #f4f6fb;
-      --sidebar-bg: #ffffff;
-      --paper: #fffdf8;
-      --paper-line: #eef0e6;
-      --text-main: #0f172a;
-      --text-muted: #64748b;
-      --primary: #2563eb;
-      --border: #e2e8f0;
-      --danger: #ef4444;
+<style>
+  :root {
+    --bg-app: #f4f6fb;
+    --sidebar-bg: #ffffff;
+    --paper: #fffdf6;
+    --paper-shadow-sheet: #f8f4e9;
+    --paper-line: #e7e2d2;
+    --margin-red: #e0a0a3;
+    --text-main: #14203a;
+    --text-muted: #67748c;
+    --primary: #2563eb;
+    --primary-dark: #1d4ed8;
+    --border: #e4e8f1;
+    --danger: #ef4444;
+    --ink: #1f2937;
+    --safe-b: env(safe-area-inset-bottom, 0px);
+    --safe-t: env(safe-area-inset-top, 0px);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
+
+  html, body { overscroll-behavior-y: contain; }
+
+  body {
+    background-color: var(--bg-app);
+    color: var(--text-main);
+    display: flex;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+  }
+
+  button { touch-action: manipulation; }
+
+  /* ---------------- Sidebar (desktop) ---------------- */
+  aside {
+    width: 240px;
+    background: var(--sidebar-bg);
+    padding: 24px 16px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    border-right: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .brand { font-weight: 800; font-size: 20px; display: flex; align-items: center; gap: 10px; padding-left: 10px; }
+  .brand-icon { width: 12px; height: 12px; background: var(--primary); border-radius: 50%; box-shadow: 14px 0 0 #ef4444, 28px 0 0 #eab308; }
+
+  .nav-menu { margin-top: 30px; list-style: none; display: flex; flex-direction: column; gap: 8px; }
+  .nav-item { padding: 12px 16px; border-radius: 12px; font-size: 14px; font-weight: 600; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; gap: 12px; transition: all 0.2s; }
+  .nav-item:hover, .nav-item.active { background: #eff6ff; color: var(--primary); }
+
+  /* ---------------- Mobile top bar ---------------- */
+  .mobile-topbar { display: none; }
+
+  #app { flex-grow: 1; display: flex; flex-direction: column; height: 100vh; height: 100dvh; overflow: hidden; min-width: 0; }
+
+  header {
+    min-height: 70px;
+    background: #ffffff;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 32px;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+  }
+
+  .search-box { background: var(--bg-app); padding: 10px 18px; border-radius: 20px; border: 1px solid var(--border); width: 280px; font-size: 14px; outline: none; }
+
+  .profile-area { position: relative; }
+  .profile-btn { display: flex; align-items: center; gap: 10px; background: none; border: none; cursor: pointer; padding: 6px 12px; border-radius: 30px; transition: background 0.2s; min-height: 44px; }
+  .profile-btn:hover { background: var(--bg-app); }
+
+  .avatar { width: 36px; height: 36px; border-radius: 50%; background: #3b82f6; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; flex-shrink: 0; }
+
+  .dropdown-menu {
+    position: absolute; right: 0; top: 54px; background: #fff; border: 1px solid var(--border);
+    border-radius: 16px; width: 230px; box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+    display: none; flex-direction: column; padding: 8px; z-index: 200;
+  }
+  .dropdown-menu.show { display: flex; }
+  .dropdown-item { padding: 12px 14px; font-size: 13px; font-weight: 600; color: var(--text-main); border-radius: 10px; cursor: pointer; display: flex; align-items: center; gap: 10px; border: none; background: none; width: 100%; text-align: left; min-height: 44px; }
+  .dropdown-item:hover { background: #f1f5f9; }
+  .dropdown-divider { height: 1px; background: var(--border); margin: 4px 0; }
+
+  /* Mobile bottom-sheet backdrop for profile menu */
+  .sheet-backdrop { position: fixed; inset: 0; background: rgba(15,23,42,0.45); z-index: 150; opacity: 0; pointer-events: none; transition: opacity .2s ease; }
+  .sheet-backdrop.show { opacity: 1; pointer-events: auto; }
+
+  .content-area { flex-grow: 1; padding: 20px 32px 32px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+
+  .section-title { font-size: 16px; font-weight: 700; margin-bottom: 14px; color: #0f172a; }
+
+  .folder-pagination-wrapper { display: flex; align-items: center; gap: 10px; margin-bottom: 22px; }
+
+  .btn-nav-arrow { background: #fff; border: 1px solid #cbd5e1; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: bold; flex-shrink: 0; user-select: none; }
+  .btn-nav-arrow:disabled { opacity: 0.3; cursor: not-allowed; }
+
+  .folders-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; flex-grow: 1; }
+
+  .folder-card {
+    background: #fff; border-radius: 16px; padding: 14px; cursor: pointer; border: 2px solid transparent;
+    transition: all 0.2s; box-shadow: 0 2px 6px rgba(0,0,0,0.02); display: flex; flex-direction: column;
+    justify-content: space-between; min-height: 110px; position: relative;
+  }
+  .folder-card.active { border-color: var(--primary); box-shadow: 0 4px 12px rgba(37, 99, 235, 0.1); }
+
+  .folder-top { display: flex; justify-content: space-between; align-items: center; }
+  .folder-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; background: #eff6ff; }
+
+  .btn-delete-folder { background: none; border: none; color: #94a3b8; font-size: 16px; font-weight: bold; cursor: pointer; padding: 6px; border-radius: 6px; line-height: 1; transition: all 0.2s; min-width: 32px; min-height: 32px; }
+  .btn-delete-folder:hover { color: var(--danger); background: #fee2e2; }
+
+  .folder-name { font-weight: 700; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .folder-count { font-size: 11px; color: var(--text-muted); }
+
+  .folder-add-btn { border: 2px dashed #cbd5e1; background: transparent; align-items: center; justify-content: center; gap: 4px; }
+
+  /* ---------- Sub Bab section ---------- */
+  .subbab-section { background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 16px 18px; margin-bottom: 22px; }
+  .subbab-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; gap: 12px; flex-wrap: wrap; }
+  .subbab-header h3 { font-size: 14px; font-weight: 700; color: #334155; }
+
+  .btn-folder-download { font-size: 12px; font-weight: 700; color: var(--primary); background: #eff6ff; border: 1px solid #bfdbfe; padding: 9px 14px; border-radius: 8px; cursor: pointer; white-space: nowrap; min-height: 40px; }
+  .btn-folder-download:hover { background: #dbeafe; }
+
+  .subbab-pills { display: flex; flex-wrap: wrap; gap: 8px; }
+  .subbab-pill { display: flex; align-items: center; gap: 6px; background: var(--bg-app); border: 1px solid var(--border); border-radius: 20px; padding: 8px 8px 8px 14px; font-size: 12.5px; font-weight: 600; color: #475569; cursor: pointer; transition: all .15s; min-height: 40px; }
+  .subbab-pill:hover { border-color: #cbd5e1; }
+  .subbab-pill.active { border-color: var(--primary); background: #eff6ff; color: var(--primary); }
+  .subbab-pill .pill-count { color: #94a3b8; font-weight: 500; }
+  .subbab-pill .pill-icon-btn { background: none; border: none; cursor: pointer; font-size: 13px; padding: 6px 7px; border-radius: 6px; line-height: 1; color: #94a3b8; min-width: 30px; min-height: 30px; }
+  .subbab-pill .pill-icon-btn:hover { background: #e2e8f0; color: #1e293b; }
+  .subbab-pill .pill-icon-btn.danger:hover { color: var(--danger); background: #fee2e2; }
+  .subbab-pill.add-pill { border-style: dashed; color: #64748b; padding: 8px 16px; }
+
+  /* Input trigger card (opens modal) - desktop only, mobile uses FAB */
+  .input-trigger-card { background: #fff; border-radius: 16px; padding: 18px; margin-bottom: 22px; box-shadow: 0 2px 8px rgba(0,0,0,0.02); border: 1px solid var(--border); display: flex; flex-direction: column; gap: 12px; }
+  .fake-input { background: var(--bg-app); border: 1px solid var(--border); border-radius: 10px; padding: 14px; color: var(--text-muted); font-size: 14px; cursor: pointer; }
+  .btn-submit { background: var(--text-main); color: #fff; border: none; padding: 12px 20px; border-radius: 10px; font-weight: 600; cursor: pointer; width: 100%; min-height: 46px; }
+
+  /* Floating action button - mobile */
+  .fab { display: none; }
+
+  /* ---------- Notebook-style note cards (Q&A) ---------- */
+  .notes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 26px; padding: 6px 4px 20px; }
+
+  .note-card {
+    position: relative; background: var(--paper); border-radius: 4px; padding: 20px 18px 14px 26px;
+    display: flex; flex-direction: column; justify-content: space-between; min-height: 210px;
+    border: 1px solid #ece7d6; box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 10px 18px rgba(15,23,42,0.07);
+    transition: transform .15s ease, box-shadow .15s ease; cursor: pointer;
+  }
+  .note-card::before { content: ''; position: absolute; inset: 5px -4px -5px 4px; background: var(--paper-shadow-sheet); border: 1px solid #ece7d6; border-radius: 4px; z-index: -1; }
+  .note-card::after { content: ''; position: absolute; top: 0; right: 0; width: 0; height: 0; border-style: solid; border-width: 0 16px 16px 0; border-color: transparent #ece4cc transparent transparent; }
+  /* red notebook margin line */
+  .note-card .margin-line { position: absolute; left: 14px; top: 0; bottom: 0; width: 1px; background: var(--margin-red); opacity: .55; }
+
+  .note-card:nth-child(3n+1) { transform: rotate(-0.5deg); }
+  .note-card:nth-child(3n+2) { transform: rotate(0.4deg); }
+  .note-card:nth-child(3n+3) { transform: rotate(-0.2deg); }
+  .note-card:hover { transform: rotate(0deg) translateY(-3px); box-shadow: 0 4px 6px rgba(0,0,0,0.05), 0 14px 22px rgba(15,23,42,0.1); }
+  .note-card:active { transform: rotate(0deg) scale(0.985); }
+
+  .note-top-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+  .note-tag { font-size: 10.5px; letter-spacing: 0.04em; text-transform: uppercase; font-weight: 700; color: #a39d8c; margin-bottom: 6px; }
+  .note-stamp { font-family: 'Caveat', cursive; font-size: 17px; color: #b3907a; transform: rotate(-4deg); white-space: nowrap; }
+
+  .note-q-row { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 8px; }
+  .note-q-badge {
+    flex-shrink: 0; width: 20px; height: 20px; border-radius: 50%; background: var(--primary); color: #fff;
+    font-family: 'Merriweather', serif; font-weight: 700; font-size: 11px; display: flex; align-items: center; justify-content: center; margin-top: 2px;
+  }
+  .note-q { font-family: 'Merriweather', Georgia, serif; font-size: 15px; font-weight: 700; color: #1e293b; line-height: 1.35; }
+
+  .note-content {
+    font-family: 'Merriweather', Georgia, serif; font-size: 13px; color: #3b3f47; line-height: 24px;
+    background-image: repeating-linear-gradient(to bottom, transparent, transparent 23px, var(--paper-line) 24px);
+    padding: 2px 2px 0; width: 100%; min-height: 96px; max-height: 120px; overflow: hidden; position: relative;
+  }
+  .note-content:empty:before { content: 'Belum ada jawaban. Ketuk untuk menulis.'; color: var(--text-muted); font-style: italic; }
+  .note-content.fade-clip::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 32px; background: linear-gradient(to bottom, transparent, var(--paper)); }
+
+  .note-tap-hint { font-size: 11px; color: #94a3b8; font-weight: 600; margin-top: 6px; }
+
+  .note-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; padding-top: 8px; border-top: 1px dashed #e5e2d6; font-size: 11px; color: #a8a49a; }
+  .note-foot-actions { display: flex; gap: 6px; }
+  .note-foot-actions button { background: none; border: none; font-weight: 700; cursor: pointer; font-size: 12px; padding: 8px; border-radius: 8px; min-width: 36px; min-height: 36px; }
+  .note-foot-actions button:hover { background: #f1efe4; }
+  .btn-edit-note { color: var(--primary); }
+  .btn-delete-note { color: var(--danger); }
+
+  /* ---------- Read (view) modal - full notebook page ---------- */
+  .read-page { background: var(--paper); border-radius: 12px; padding: 26px 24px 20px 34px; position: relative; max-height: 70vh; overflow-y: auto; }
+  .read-page .margin-line { position: absolute; left: 20px; top: 0; bottom: 0; width: 1px; background: var(--margin-red); opacity: .5; }
+  .read-page .note-stamp { position: absolute; top: 18px; right: 22px; }
+  .read-page .read-q { font-family: 'Merriweather', serif; font-weight: 900; font-size: 19px; color: #1e293b; line-height: 1.4; margin-bottom: 14px; padding-right: 70px; }
+  .read-page .read-answer { font-family: 'Merriweather', serif; font-size: 14.5px; color: #333; line-height: 26px; background-image: repeating-linear-gradient(to bottom, transparent, transparent 25px, var(--paper-line) 26px); min-height: 100px; }
+  .read-page .read-answer:empty:before { content: 'Belum ada jawaban.'; color: var(--text-muted); font-style: italic; }
+  .read-meta { font-size: 11px; color: var(--text-muted); margin-top: 14px; padding-top: 10px; border-top: 1px dashed #e5e2d6; }
+
+  /* ---------- Modal shell ---------- */
+  .modal-overlay {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.5);
+    display: flex; align-items: center; justify-content: center; padding: 16px;
+    opacity: 0; pointer-events: none; transition: opacity 0.2s ease; z-index: 999;
+  }
+  .modal-overlay.active { opacity: 1; pointer-events: auto; }
+
+  .modal { background: #fff; border-radius: 16px; width: 100%; max-width: 480px; padding: 20px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 20px 40px rgba(0,0,0,0.15); max-height: 90vh; overflow-y: auto; }
+  .modal.small-modal { max-width: 360px; }
+
+  .modal-header { display: flex; justify-content: space-between; align-items: center; font-weight: 700; font-size: 15px; }
+  .modal-header span.close-x { cursor: pointer; font-size: 20px; color: var(--text-muted); padding: 6px; min-width: 32px; min-height: 32px; display: flex; align-items: center; justify-content: center; }
+
+  .modal input[type="text"], .modal select { width: 100%; background: var(--bg-app); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; font-size: 16px; outline: none; }
+
+  .toolbar { display: flex; gap: 4px; background: var(--bg-app); border: 1px solid var(--border); border-bottom: none; border-radius: 8px 8px 0 0; padding: 6px; flex-wrap: wrap; }
+  .toolbar button { background: transparent; border: none; padding: 8px 12px; font-size: 14px; border-radius: 6px; cursor: pointer; color: var(--text-main); min-width: 40px; min-height: 40px; }
+  .toolbar button:hover { background: var(--border); }
+
+  .editor { background: var(--bg-app); border: 1px solid var(--border); border-radius: 0 0 8px 8px; padding: 12px; min-height: 140px; max-height: 260px; overflow-y: auto; outline: none; font-size: 16px; line-height: 1.5; }
+  .editor[placeholder]:empty:before { content: attr(placeholder); color: var(--text-muted); }
+
+  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
+  .btn-cancel { background: none; border: 1px solid var(--border); border-radius: 10px; padding: 12px 18px; font-weight: 600; font-size: 13px; cursor: pointer; color: var(--text-muted); min-height: 44px; }
+  .btn-save { background: var(--text-main); color: #fff; border: none; border-radius: 10px; padding: 12px 18px; font-weight: 600; font-size: 13px; cursor: pointer; min-height: 44px; }
+  .btn-save.danger { background: var(--danger); }
+
+  .empty-state { color: var(--text-muted); grid-column: 1/-1; text-align: center; padding: 40px 16px; font-size: 14px; }
+
+  /* ===================== MOBILE (Android-first) ===================== */
+  @media (max-width: 768px) {
+    body { flex-direction: column; }
+    aside { display: none; }
+
+    .mobile-topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: calc(10px + var(--safe-t)) 16px 10px; background: #fff; border-bottom: 1px solid var(--border); flex-shrink: 0;
     }
+    .mobile-topbar .brand { font-size: 17px; }
+    .mobile-topbar .brand-icon { width: 10px; height: 10px; box-shadow: 11px 0 0 #ef4444, 22px 0 0 #eab308; }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: 'Plus Jakarta Sans', sans-serif;
-    }
+    header { padding: 10px 16px; gap: 10px; }
+    header .profile-area { order: 2; }
+    .search-box { order: 3; width: 100%; flex-basis: 100%; font-size: 16px; }
+    .content-area { padding: 14px 14px calc(90px + var(--safe-b)); }
 
-    body {
-      background-color: var(--bg-app);
-      color: var(--text-main);
-      display: flex;
-      height: 100vh;
-      overflow: hidden;
-    }
-
-    aside {
-      width: 240px;
-      background: var(--sidebar-bg);
-      padding: 24px 16px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      border-right: 1px solid var(--border);
-      flex-shrink: 0;
-    }
-
-    .brand {
-      font-weight: 800;
-      font-size: 20px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding-left: 10px;
-    }
-
-    .brand-icon {
-      width: 12px;
-      height: 12px;
-      background: var(--primary);
-      border-radius: 50%;
-      box-shadow: 14px 0 0 #ef4444, 28px 0 0 #eab308;
-    }
-
-    .nav-menu {
-      margin-top: 30px;
-      list-style: none;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .nav-item {
-      padding: 12px 16px;
-      border-radius: 12px;
-      font-size: 14px;
-      font-weight: 600;
-      color: var(--text-muted);
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      transition: all 0.2s;
-    }
-
-    .nav-item:hover, .nav-item.active {
-      background: #eff6ff;
-      color: var(--primary);
-    }
-
-    #app {
-      flex-grow: 1;
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
-      overflow: hidden;
-    }
-
-    header {
-      height: 70px;
-      background: #ffffff;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 32px;
-      flex-shrink: 0;
-    }
-
-    .search-box {
-      background: var(--bg-app);
-      padding: 10px 18px;
-      border-radius: 20px;
-      border: 1px solid var(--border);
-      width: 280px;
-      font-size: 14px;
-      outline: none;
-    }
-
-    .profile-area { position: relative; }
-
-    .profile-btn {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      background: none;
-      border: none;
-      cursor: pointer;
-      padding: 6px 12px;
-      border-radius: 30px;
-      transition: background 0.2s;
-    }
-
-    .profile-btn:hover { background: var(--bg-app); }
-
-    .avatar {
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      background: #3b82f6;
-      color: #fff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 700;
-      font-size: 14px;
-    }
-
-    .dropdown-menu {
-      position: absolute;
-      right: 0;
-      top: 50px;
-      background: #fff;
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      width: 230px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.08);
-      display: none;
-      flex-direction: column;
-      padding: 8px;
-      z-index: 100;
-    }
-
-    .dropdown-menu.show { display: flex; }
-
-    .dropdown-item {
-      padding: 10px 14px;
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--text-main);
-      border-radius: 10px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      border: none;
-      background: none;
-      width: 100%;
-      text-align: left;
-    }
-
-    .dropdown-item:hover { background: #f1f5f9; }
-    .dropdown-divider { height: 1px; background: var(--border); margin: 4px 0; }
-
-    .content-area {
-      flex-grow: 1;
-      padding: 24px 32px;
-      overflow-y: auto;
-    }
-
-    .section-title {
-      font-size: 16px;
-      font-weight: 700;
-      margin-bottom: 14px;
-      color: #0f172a;
-    }
-
-    .folder-pagination-wrapper {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 22px;
-    }
-
-    .btn-nav-arrow {
-      background: #fff;
-      border: 1px solid #cbd5e1;
-      border-radius: 50%;
-      width: 36px;
-      height: 36px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      font-weight: bold;
-      flex-shrink: 0;
-      user-select: none;
-    }
-
-    .btn-nav-arrow:disabled {
-      opacity: 0.3;
-      cursor: not-allowed;
-    }
-
+    .folder-pagination-wrapper { gap: 6px; }
+    .btn-nav-arrow { display: none; }
     .folders-grid {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 14px;
-      flex-grow: 1;
+      display: flex; grid-template-columns: none; overflow-x: auto; scroll-snap-type: x proximity;
+      -webkit-overflow-scrolling: touch; padding-bottom: 4px; gap: 10px;
     }
+    .folder-card { flex: 0 0 40%; scroll-snap-align: start; min-height: 96px; }
 
-    .folder-card {
-      background: #fff;
-      border-radius: 16px;
-      padding: 14px;
-      cursor: pointer;
-      border: 2px solid transparent;
-      transition: all 0.2s;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.02);
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      min-height: 110px;
-      position: relative;
-    }
+    .input-trigger-card { display: none; }
 
-    .folder-card.active {
-      border-color: var(--primary);
-      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.1);
-    }
-
-    .folder-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .folder-icon {
-      width: 32px;
-      height: 32px;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 16px;
-      background: #eff6ff;
-    }
-
-    .btn-delete-folder {
-      background: none;
-      border: none;
-      color: #94a3b8;
-      font-size: 14px;
-      font-weight: bold;
-      cursor: pointer;
-      padding: 2px 6px;
-      border-radius: 6px;
-      line-height: 1;
-      transition: all 0.2s;
-    }
-
-    .btn-delete-folder:hover {
-      color: var(--danger);
-      background: #fee2e2;
-    }
-
-    .folder-name {
-      font-weight: 700;
-      font-size: 13px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .folder-count {
-      font-size: 11px;
-      color: var(--text-muted);
-    }
-
-    .folder-add-btn {
-      border: 2px dashed #cbd5e1;
-      background: transparent;
-      align-items: center;
-      justify-content: center;
-      gap: 4px;
-    }
-
-    /* ---------- Sub Bab section ---------- */
-    .subbab-section {
-      background: #fff;
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 16px 18px;
-      margin-bottom: 22px;
-    }
-
-    .subbab-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 12px;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
-
-    .subbab-header h3 {
-      font-size: 14px;
-      font-weight: 700;
-      color: #334155;
-    }
-
-    .btn-folder-download {
-      font-size: 12px;
-      font-weight: 700;
-      color: var(--primary);
-      background: #eff6ff;
-      border: 1px solid #bfdbfe;
-      padding: 7px 14px;
-      border-radius: 8px;
-      cursor: pointer;
-      white-space: nowrap;
-    }
-    .btn-folder-download:hover { background: #dbeafe; }
-
-    .subbab-pills {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-
-    .subbab-pill {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      background: var(--bg-app);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 6px 8px 6px 14px;
-      font-size: 12.5px;
-      font-weight: 600;
-      color: #475569;
-      cursor: pointer;
-      transition: all .15s;
-    }
-
-    .subbab-pill:hover { border-color: #cbd5e1; }
-
-    .subbab-pill.active {
-      border-color: var(--primary);
-      background: #eff6ff;
-      color: var(--primary);
-    }
-
-    .subbab-pill .pill-count {
-      color: #94a3b8;
-      font-weight: 500;
-    }
-
-    .subbab-pill .pill-icon-btn {
-      background: none;
-      border: none;
-      cursor: pointer;
-      font-size: 12px;
-      padding: 3px 5px;
-      border-radius: 6px;
-      line-height: 1;
-      color: #94a3b8;
-    }
-    .subbab-pill .pill-icon-btn:hover { background: #e2e8f0; color: #1e293b; }
-    .subbab-pill .pill-icon-btn.danger:hover { color: var(--danger); background: #fee2e2; }
-
-    .subbab-pill.add-pill {
-      border-style: dashed;
-      color: #64748b;
-      padding: 6px 16px;
-    }
-
-    /* Input trigger card (opens modal) */
-    .input-trigger-card {
-      background: #fff;
-      border-radius: 16px;
-      padding: 18px;
-      margin-bottom: 22px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.02);
-      border: 1px solid var(--border);
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .fake-input {
-      background: var(--bg-app);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 12px 14px;
-      color: var(--text-muted);
-      font-size: 14px;
+    .fab {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      position: fixed; right: 18px; bottom: calc(20px + var(--safe-b)); z-index: 120;
+      background: var(--primary); color: #fff; border: none; border-radius: 30px;
+      padding: 16px 20px; font-weight: 700; font-size: 14px; box-shadow: 0 8px 20px rgba(37,99,235,0.35);
       cursor: pointer;
     }
+    .fab:active { background: var(--primary-dark); transform: scale(0.97); }
 
-    .btn-submit {
-      background: var(--text-main);
-      color: #fff;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 10px;
-      font-weight: 600;
-      cursor: pointer;
-      width: 100%;
+    .notes-grid { grid-template-columns: 1fr; gap: 20px; }
+    .note-card { min-height: 170px; transform: none !important; }
+
+    /* Bottom-sheet modals for a native Android feel */
+    .modal-overlay { align-items: flex-end; padding: 0; }
+    .modal, .read-page-wrap {
+      max-width: 100%; border-radius: 20px 20px 0 0; max-height: 88vh;
+      padding-bottom: calc(20px + var(--safe-b));
+    }
+    .modal.small-modal { max-width: 100%; }
+    .modal::before {
+      content: ''; display: block; width: 40px; height: 4px; background: #e2e8f0; border-radius: 4px;
+      margin: -6px auto 4px;
     }
 
-    /* ---------- Paper-style note cards ---------- */
-    .notes-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-      gap: 30px;
-      padding: 6px 4px 20px;
-    }
+    .dropdown-menu { position: fixed; left: 0; right: 0; bottom: 0; top: auto; width: 100%; border-radius: 20px 20px 0 0; padding: 10px 10px calc(14px + var(--safe-b)); box-shadow: 0 -10px 30px rgba(0,0,0,0.12); }
+    .dropdown-item { font-size: 14px; padding: 14px; }
+  }
 
-    .note-card {
-      position: relative;
-      background: var(--paper);
-      border-radius: 3px;
-      padding: 22px 20px 16px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      min-height: 230px;
-      border: 1px solid #ece9de;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 10px 18px rgba(15,23,42,0.07);
-      transition: transform .15s ease, box-shadow .15s ease;
-    }
-
-    .note-card::before {
-      content: '';
-      position: absolute;
-      inset: 5px -4px -5px 4px;
-      background: #fbf9f1;
-      border: 1px solid #ece9de;
-      border-radius: 3px;
-      z-index: -1;
-    }
-
-    .note-card::after {
-      content: '';
-      position: absolute;
-      top: 0; right: 0;
-      width: 0; height: 0;
-      border-style: solid;
-      border-width: 0 18px 18px 0;
-      border-color: transparent #efece0 transparent transparent;
-    }
-
-    .note-card:nth-child(3n+1) { transform: rotate(-0.5deg); }
-    .note-card:nth-child(3n+2) { transform: rotate(0.4deg); }
-    .note-card:nth-child(3n+3) { transform: rotate(-0.2deg); }
-    .note-card:hover { transform: rotate(0deg) translateY(-3px); box-shadow: 0 4px 6px rgba(0,0,0,0.05), 0 14px 22px rgba(15,23,42,0.1); }
-
-    .note-tag {
-      font-size: 10.5px;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-      font-weight: 700;
-      color: #a8a49a;
-      margin-bottom: 8px;
-    }
-
-    .note-q {
-      font-family: 'Merriweather', Georgia, serif;
-      font-size: 15.5px;
-      font-weight: 700;
-      color: #1e293b;
-      margin-bottom: 10px;
-      line-height: 1.35;
-    }
-
-    .note-content {
-      font-family: 'Merriweather', Georgia, serif;
-      font-size: 13px;
-      color: #3b3f47;
-      line-height: 24px;
-      background-image: repeating-linear-gradient(to bottom, transparent, transparent 23px, var(--paper-line) 24px);
-      padding: 2px 2px 0;
-      width: 100%;
-      min-height: 96px;
-      max-height: 144px;
-      overflow-y: auto;
-    }
-
-    .note-content ul, .note-content ol { margin-left: 16px; }
-    .note-content:empty:before { content: 'Tidak ada isi.'; color: var(--text-muted); font-style: italic; }
-
-    .note-foot {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: 12px;
-      padding-top: 8px;
-      border-top: 1px dashed #e5e2d6;
-      font-size: 11px;
-      color: #a8a49a;
-    }
-
-    .note-foot-actions { display: flex; gap: 12px; }
-    .note-foot-actions button {
-      background: none;
-      border: none;
-      font-weight: 700;
-      cursor: pointer;
-      font-size: 11px;
-    }
-    .btn-edit-note { color: var(--primary); }
-    .btn-delete-note { color: var(--danger); }
-
-    /* Modal */
-    .modal-overlay {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(15, 23, 42, 0.5);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 16px;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.2s ease;
-      z-index: 999;
-    }
-
-    .modal-overlay.active {
-      opacity: 1;
-      pointer-events: auto;
-    }
-
-    .modal {
-      background: #fff;
-      border-radius: 16px;
-      width: 100%;
-      max-width: 480px;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.15);
-    }
-
-    .modal.small-modal { max-width: 360px; }
-
-    .modal-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-weight: 700;
-      font-size: 15px;
-    }
-
-    .modal-header span.close-x {
-      cursor: pointer;
-      font-size: 18px;
-      color: var(--text-muted);
-    }
-
-    .modal input[type="text"], .modal select {
-      width: 100%;
-      background: var(--bg-app);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 10px 12px;
-      font-size: 14px;
-      outline: none;
-    }
-
-    .toolbar {
-      display: flex;
-      gap: 4px;
-      background: var(--bg-app);
-      border: 1px solid var(--border);
-      border-bottom: none;
-      border-radius: 8px 8px 0 0;
-      padding: 6px;
-      flex-wrap: wrap;
-    }
-
-    .toolbar button {
-      background: transparent;
-      border: none;
-      padding: 6px 10px;
-      font-size: 13px;
-      border-radius: 6px;
-      cursor: pointer;
-      color: var(--text-main);
-    }
-
-    .toolbar button:hover { background: var(--border); }
-
-    .editor {
-      background: var(--bg-app);
-      border: 1px solid var(--border);
-      border-radius: 0 0 8px 8px;
-      padding: 12px;
-      min-height: 140px;
-      max-height: 260px;
-      overflow-y: auto;
-      outline: none;
-      font-size: 14px;
-      line-height: 1.5;
-    }
-
-    .editor[placeholder]:empty:before {
-      content: attr(placeholder);
-      color: var(--text-muted);
-    }
-
-    .modal-actions {
-      display: flex;
-      gap: 8px;
-      justify-content: flex-end;
-    }
-
-    .btn-cancel {
-      background: none;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 10px 18px;
-      font-weight: 600;
-      font-size: 13px;
-      cursor: pointer;
-      color: var(--text-muted);
-    }
-
-    .btn-save {
-      background: var(--text-main);
-      color: #fff;
-      border: none;
-      border-radius: 10px;
-      padding: 10px 18px;
-      font-weight: 600;
-      font-size: 13px;
-      cursor: pointer;
-    }
-
-    @media (max-width: 768px) {
-      body { flex-direction: column; }
-      aside { display: none; }
-      header { padding: 0 16px; }
-      .search-box { width: 150px; }
-      .content-area { padding: 16px; }
-      .folders-grid { grid-template-columns: repeat(2, 1fr); }
-    }
-  </style>
+  @media (max-width: 380px) {
+    .folder-card { flex: 0 0 52%; }
+  }
+</style>
 </head>
 <body>
 
-  <aside>
+<aside>
+  <div>
+    <div class="brand"><div class="brand-icon"></div> MINO NOTES</div>
+    <ul class="nav-menu">
+      <li class="nav-item active">📝 All Notes</li>
+    </ul>
+  </div>
+  <div style="font-size: 11px; color: var(--text-muted);" id="storageStatusDesktop">Menyimpan...</div>
+</aside>
+
+<div id="app">
+  <div class="mobile-topbar">
+    <div class="brand"><div class="brand-icon"></div> MINO NOTES</div>
+    <span id="storageStatusMobile" style="font-size:11px;color:var(--text-muted);">⏳</span>
+  </div>
+
+  <header>
+    <input type="text" id="searchInput" class="search-box" placeholder="Cari catatan..." oninput="renderNotes()">
+
+    <div class="profile-area">
+      <button class="profile-btn" onclick="toggleProfileMenu(event)">
+        <div class="avatar">M</div>
+        <span style="font-size: 13px; font-weight: 700;">Profile ▾</span>
+      </button>
+
+      <div class="dropdown-menu" id="profileDropdown">
+        <button class="dropdown-item" onclick="exportPDF('All Notes','All')">📄 Unduh Semua (PDF)</button>
+        <button class="dropdown-item" onclick="exportPDF(activeFolder,'All')">📑 Unduh Folder Ini (PDF)</button>
+        <div class="dropdown-divider"></div>
+        <button class="dropdown-item" onclick="exportJSON()">💾 Export JSON</button>
+        <label class="dropdown-item" style="cursor: pointer;">
+          📂 Import JSON
+          <input type="file" id="importFile" accept=".json" onchange="importJSON(event)" style="display:none;">
+        </label>
+      </div>
+    </div>
+  </header>
+
+  <div class="sheet-backdrop" id="sheetBackdrop" onclick="closeAllSheets()"></div>
+
+  <div class="content-area">
+    <h2 class="section-title">Folders / Categories</h2>
+    <div class="folder-pagination-wrapper">
+      <button class="btn-nav-arrow" id="btnPrevFolder" onclick="changeFolderPage(-1)">◀</button>
+      <div class="folders-grid" id="foldersContainer"></div>
+      <button class="btn-nav-arrow" id="btnNextFolder" onclick="changeFolderPage(1)">▶</button>
+    </div>
+
+    <div class="input-trigger-card">
+      <div class="fake-input" onclick="openModal()">Tulis pertanyaan / ide baru...</div>
+      <button class="btn-submit" onclick="openModal()">+ Buat Catatan Baru</button>
+    </div>
+
+    <div class="subbab-section" id="subbabSectionContainer" style="display:none;"></div>
+
+    <h2 class="section-title" id="notesTitle">My Notes</h2>
+    <div class="notes-grid" id="notesGrid"></div>
+  </div>
+
+  <button class="fab" onclick="openModal()">✎ Catatan Baru</button>
+</div>
+
+<!-- Modal Rich-Text Editor -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <span id="modalTitleLabel">Catatan Baru</span>
+      <span class="close-x" onclick="closeModal()">&times;</span>
+    </div>
+
+    <input type="text" id="qInput" placeholder="Tulis pertanyaan / judul...">
+
+    <select id="folderSelect" onchange="onModalFolderChange()"></select>
+    <select id="subbabSelect" onchange="onModalSubbabChange()"></select>
+
     <div>
-      <div class="brand"><div class="brand-icon"></div> MINO NOTES</div>
-      <ul class="nav-menu">
-        <li class="nav-item active">📝 All Notes</li>
-      </ul>
+      <div class="toolbar">
+        <button type="button" title="Bold" onclick="execCmd('bold')"><b>B</b></button>
+        <button type="button" title="Italic" onclick="execCmd('italic')"><i>I</i></button>
+        <button type="button" title="Underline" onclick="execCmd('underline')"><u>U</u></button>
+        <button type="button" title="Strikethrough" onclick="execCmd('strikeThrough')"><s>S</s></button>
+        <button type="button" title="Bullet List" onclick="execCmd('insertUnorderedList')">• List</button>
+        <button type="button" title="Numbered List" onclick="execCmd('insertOrderedList')">1. List</button>
+      </div>
+      <div id="editor" class="editor" contenteditable="true" placeholder="Tulis isi jawaban/refleksi di sini..."></div>
     </div>
-    <div style="font-size: 11px; color: var(--text-muted);">
-      Storage: Local Browser
-    </div>
-  </aside>
 
-  <div id="app">
-    <header>
-      <input type="text" id="searchInput" class="search-box" placeholder="Cari catatan..." oninput="renderNotes()">
-
-      <div class="profile-area">
-        <button class="profile-btn" onclick="toggleProfileMenu(event)">
-          <div class="avatar">M</div>
-          <span style="font-size: 13px; font-weight: 700;">Profile ▾</span>
-        </button>
-
-        <div class="dropdown-menu" id="profileDropdown">
-          <button class="dropdown-item" onclick="exportPDF('All Notes','All')">📄 Unduh Semua (PDF)</button>
-          <button class="dropdown-item" onclick="exportPDF(activeFolder,'All')">📑 Unduh Folder Ini (PDF)</button>
-          <div class="dropdown-divider"></div>
-          <button class="dropdown-item" onclick="exportJSON()">💾 Export JSON</button>
-          <label class="dropdown-item" style="cursor: pointer;">
-            📂 Import JSON
-            <input type="file" id="importFile" accept=".json" onchange="importJSON(event)" style="display:none;">
-          </label>
-        </div>
-      </div>
-    </header>
-
-    <div class="content-area">
-      <h2 class="section-title">Folders / Categories</h2>
-      <div class="folder-pagination-wrapper">
-        <button class="btn-nav-arrow" id="btnPrevFolder" onclick="changeFolderPage(-1)">◀</button>
-        <div class="folders-grid" id="foldersContainer"></div>
-        <button class="btn-nav-arrow" id="btnNextFolder" onclick="changeFolderPage(1)">▶</button>
-      </div>
-
-      <div class="input-trigger-card">
-        <div class="fake-input" onclick="openModal()">Tulis pertanyaan / ide baru...</div>
-        <button class="btn-submit" onclick="openModal()">+ Buat Catatan Baru</button>
-      </div>
-
-      <div class="subbab-section" id="subbabSectionContainer" style="display:none;"></div>
-
-      <h2 class="section-title" id="notesTitle">My Notes</h2>
-      <div class="notes-grid" id="notesGrid"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">Batal</button>
+      <button class="btn-save" onclick="saveNote()">Simpan Catatan</button>
     </div>
   </div>
+</div>
 
-  <!-- Modal Rich-Text Editor -->
-  <div class="modal-overlay" id="modalOverlay">
-    <div class="modal">
-      <div class="modal-header">
-        <span id="modalTitleLabel">Catatan Baru</span>
-        <span class="close-x" onclick="closeModal()">&times;</span>
-      </div>
-
-      <input type="text" id="qInput" placeholder="Tulis pertanyaan / judul...">
-
-      <select id="folderSelect" onchange="onModalFolderChange()"></select>
-      <select id="subbabSelect" onchange="onModalSubbabChange()"></select>
-
-      <div>
-        <div class="toolbar">
-          <button type="button" title="Bold" onclick="execCmd('bold')"><b>B</b></button>
-          <button type="button" title="Italic" onclick="execCmd('italic')"><i>I</i></button>
-          <button type="button" title="Underline" onclick="execCmd('underline')"><u>U</u></button>
-          <button type="button" title="Strikethrough" onclick="execCmd('strikeThrough')"><s>S</s></button>
-          <button type="button" title="Bullet List" onclick="execCmd('insertUnorderedList')">• List</button>
-          <button type="button" title="Numbered List" onclick="execCmd('insertOrderedList')">1. List</button>
-        </div>
-        <div id="editor" class="editor" contenteditable="true" placeholder="Tulis isi jawaban/refleksi di sini..."></div>
-      </div>
-
-      <div class="modal-actions">
-        <button class="btn-cancel" onclick="closeModal()">Batal</button>
-        <button class="btn-save" onclick="saveNote()">Simpan Catatan</button>
-      </div>
+<!-- Modal: baca catatan (tampilan halaman notebook penuh) -->
+<div class="modal-overlay" id="readOverlay">
+  <div class="modal read-page-wrap" style="padding:0; overflow:hidden;">
+    <div style="display:flex;justify-content:flex-end;padding:10px 14px 0;">
+      <span class="close-x" onclick="closeReadModal()">&times;</span>
+    </div>
+    <div class="read-page" id="readPageContent">
+      <div class="margin-line"></div>
+    </div>
+    <div class="modal-actions" style="padding:14px;">
+      <button class="btn-cancel" id="readDeleteBtn">Hapus</button>
+      <button class="btn-save" id="readEditBtn">Edit Catatan</button>
     </div>
   </div>
+</div>
 
-  <!-- Modal input generik (Tambah Folder / Tambah Sub Bab) -->
-  <div class="modal-overlay" id="inputModalOverlay">
-    <div class="modal small-modal">
-      <div class="modal-header">
-        <span id="inputModalTitleLabel">Tambah</span>
-        <span class="close-x" onclick="closeInputModal()">&times;</span>
-      </div>
-      <input type="text" id="inputModalField" placeholder="">
-      <div class="modal-actions">
-        <button class="btn-cancel" onclick="closeInputModal()">Batal</button>
-        <button class="btn-save" onclick="confirmInputModal()">Simpan</button>
-      </div>
+<!-- Modal input generik (Tambah Folder / Tambah Sub Bab) -->
+<div class="modal-overlay" id="inputModalOverlay">
+  <div class="modal small-modal">
+    <div class="modal-header">
+      <span id="inputModalTitleLabel">Tambah</span>
+      <span class="close-x" onclick="closeInputModal()">&times;</span>
+    </div>
+    <input type="text" id="inputModalField" placeholder="">
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeInputModal()">Batal</button>
+      <button class="btn-save" onclick="confirmInputModal()">Simpan</button>
     </div>
   </div>
+</div>
 
-  <script>
-    const STORAGE_KEY_NOTES = 'mino_notes_paper_v1';
-    const STORAGE_KEY_FOLDERS = 'mino_folders_paper_v1';
-    const STORAGE_KEY_SUBBABS = 'mino_subbabs_paper_v1';
+<script>
+  const DATA_KEY = 'mino_notes_data_v2';
 
-    let notes = [];
-    let folders = ['All Notes', 'Movie Review', 'Class Notes', 'Book Lists', 'Tech & Code'];
-    let folderSubbabs = {}; // { folderName: [subbab1, subbab2, ...] }
-    let activeFolder = 'All Notes';
-    let activeSubbab = 'All';
-    let folderCurrentPage = 0;
-    let editingId = null; // null = catatan baru, angka = sedang edit
-    let inputModalCallback = null;
+  let notes = [];
+  let folders = ['All Notes', 'Movie Review', 'Class Notes', 'Book Lists', 'Tech & Code'];
+  let folderSubbabs = {};
+  let activeFolder = 'All Notes';
+  let activeSubbab = 'All';
+  let folderCurrentPage = 0;
+  let editingId = null;
+  let readingId = null;
+  let inputModalCallback = null;
+  let dataLoaded = false;
 
-    function getFoldersPerPage() {
-      return window.innerWidth <= 768 ? 1 : 4;
+  function isMobile() { return window.innerWidth <= 768; }
+  function getFoldersPerPage() { return isMobile() ? 1 : 4; }
+
+  function setStorageStatus(text) {
+    const a = document.getElementById('storageStatusDesktop');
+    const b = document.getElementById('storageStatusMobile');
+    if (a) a.innerText = text;
+    if (b) b.innerText = text.includes('✓') ? '✓' : (text.includes('⏳') ? '⏳' : '⚠');
+  }
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    setStorageStatus('⏳ Memuat...');
+    await loadData();
+    dataLoaded = true;
+    setStorageStatus('✓ Tersimpan');
+    render();
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.profile-area')) closeAllSheets();
+    });
+
+    window.addEventListener('resize', () => { renderFolders(); });
+
+    document.getElementById('inputModalField').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); confirmInputModal(); }
+    });
+
+    document.querySelectorAll('.modal-overlay').forEach(ov => {
+      ov.addEventListener('click', (e) => { if (e.target === ov) {
+        if (ov.id === 'modalOverlay') closeModal();
+        if (ov.id === 'readOverlay') closeReadModal();
+        if (ov.id === 'inputModalOverlay') closeInputModal();
+      }});
+    });
+  });
+
+  /* ---------- PERSISTENCE (Claude artifact storage) ---------- */
+
+  async function loadData() {
+    try {
+      const res = await window.storage.get(DATA_KEY, false);
+      if (res && res.value) {
+        const parsed = JSON.parse(res.value);
+        notes = parsed.notes || [];
+        if (Array.isArray(parsed.folders) && parsed.folders.length) folders = parsed.folders;
+        folderSubbabs = parsed.folderSubbabs || {};
+      }
+    } catch (e) {
+      // belum ada data tersimpan, pakai default
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
-      const savedNotes = localStorage.getItem(STORAGE_KEY_NOTES);
-      if (savedNotes) {
-        try { notes = JSON.parse(savedNotes); } catch(e) { notes = []; }
+    const customFoldersFromNotes = [...new Set(notes.map(n => n.folder))];
+    customFoldersFromNotes.forEach(f => { if (f && !folders.includes(f)) folders.push(f); });
+
+    notes.forEach(n => {
+      if (n.subbab) {
+        if (!folderSubbabs[n.folder]) folderSubbabs[n.folder] = [];
+        if (!folderSubbabs[n.folder].includes(n.subbab)) folderSubbabs[n.folder].push(n.subbab);
+      }
+    });
+  }
+
+  async function persist() {
+    setStorageStatus('⏳ Menyimpan...');
+    try {
+      const result = await window.storage.set(DATA_KEY, JSON.stringify({ notes, folders, folderSubbabs }), false);
+      setStorageStatus(result ? '✓ Tersimpan' : '⚠ Gagal simpan');
+    } catch (e) {
+      setStorageStatus('⚠ Gagal simpan');
+      console.error('Storage error:', e);
+    }
+  }
+
+  function save() { render(); persist(); }
+
+  /* ---------- SHEETS / DROPDOWN ---------- */
+
+  function toggleProfileMenu(e) {
+    e.stopPropagation();
+    const menu = document.getElementById('profileDropdown');
+    const backdrop = document.getElementById('sheetBackdrop');
+    const willShow = !menu.classList.contains('show');
+    menu.classList.toggle('show', willShow);
+    if (isMobile()) backdrop.classList.toggle('show', willShow);
+  }
+
+  function closeAllSheets() {
+    document.getElementById('profileDropdown').classList.remove('show');
+    document.getElementById('sheetBackdrop').classList.remove('show');
+  }
+
+  /* ---------- FOLDERS ---------- */
+
+  function renderFolders() {
+    const container = document.getElementById('foldersContainer');
+    const select = document.getElementById('folderSelect');
+    const prevBtn = document.getElementById('btnPrevFolder');
+    const nextBtn = document.getElementById('btnNextFolder');
+
+    const foldersPerPage = getFoldersPerPage();
+    const totalPages = Math.ceil(folders.length / foldersPerPage) || 1;
+
+    if (folderCurrentPage < 0) folderCurrentPage = 0;
+    if (folderCurrentPage >= totalPages) folderCurrentPage = totalPages - 1;
+
+    prevBtn.disabled = (folderCurrentPage === 0);
+    nextBtn.disabled = (folderCurrentPage >= totalPages - 1);
+
+    let visibleFolders = folders;
+    if (!isMobile()) {
+      const startIndex = folderCurrentPage * foldersPerPage;
+      visibleFolders = folders.slice(startIndex, startIndex + foldersPerPage);
+    }
+
+    let folderHTML = '';
+    visibleFolders.forEach((f) => {
+      const count = f === 'All Notes' ? notes.length : notes.filter(n => n.folder === f).length;
+      const isDefaultFolder = (f === 'All Notes');
+      const deleteBtnHtml = isDefaultFolder ? '' : `<button class="btn-delete-folder" title="Hapus Folder" onclick="deleteFolder(event, '${jsEscape(f)}')">✖</button>`;
+
+      folderHTML += `
+        <div class="folder-card ${activeFolder === f ? 'active' : ''}" onclick="selectFolder('${jsEscape(f)}')">
+          <div class="folder-top">
+            <div class="folder-icon">📂</div>
+            ${deleteBtnHtml}
+          </div>
+          <div>
+            <div class="folder-name">${escapeHtml(f)}</div>
+            <div class="folder-count">${count} notes</div>
+          </div>
+        </div>
+      `;
+    });
+
+    folderHTML += `
+      <div class="folder-card folder-add-btn" onclick="addCustomFolder()">
+        <div style="font-size: 20px; font-weight: bold;">+</div>
+        <div class="folder-name">New Folder</div>
+      </div>
+    `;
+
+    container.innerHTML = folderHTML;
+
+    const availableFoldersForSelect = folders.filter(f => f !== 'All Notes');
+    select.innerHTML = availableFoldersForSelect.map(f => `<option value="${escapeHtml(f)}" ${f === activeFolder ? 'selected' : ''}>${escapeHtml(f)}</option>`).join('');
+  }
+
+  function changeFolderPage(dir) { folderCurrentPage += dir; renderFolders(); }
+
+  function selectFolder(fName) { activeFolder = fName; activeSubbab = 'All'; render(); }
+
+  function addCustomFolder() {
+    openInputModal('Tambah Folder Baru', 'Nama folder / kategori...', (val) => {
+      if (!folders.includes(val)) folders.push(val);
+      activeFolder = val;
+      activeSubbab = 'All';
+      const foldersPerPage = getFoldersPerPage();
+      folderCurrentPage = Math.floor((folders.length - 1) / foldersPerPage);
+      save();
+    });
+  }
+
+  function deleteFolder(event, folderName) {
+    event.stopPropagation();
+    if (folderName === 'All Notes') return;
+
+    const notesInFolder = notes.filter(n => n.folder === folderName).length;
+    let confirmMsg = `Yakin ingin menghapus folder "${folderName}"?`;
+    if (notesInFolder > 0) confirmMsg += `\n\nAda ${notesInFolder} catatan di folder ini. Catatan akan dipindahkan ke folder 'General'.`;
+
+    if (confirm(confirmMsg)) {
+      folders = folders.filter(f => f !== folderName);
+      delete folderSubbabs[folderName];
+      notes.forEach(n => { if (n.folder === folderName) { n.folder = 'General'; n.subbab = ''; } });
+      if (notes.some(n => n.folder === 'General') && !folders.includes('General')) folders.push('General');
+      if (activeFolder === folderName) { activeFolder = 'All Notes'; activeSubbab = 'All'; }
+      save();
+    }
+  }
+
+  /* ---------- SUB BAB ---------- */
+
+  function renderSubbabSection() {
+    const container = document.getElementById('subbabSectionContainer');
+    if (activeFolder === 'All Notes') { container.style.display = 'none'; container.innerHTML = ''; return; }
+    container.style.display = 'block';
+
+    const subList = folderSubbabs[activeFolder] || [];
+    const allCount = notes.filter(n => n.folder === activeFolder).length;
+
+    let pillsHTML = `<div class="subbab-pill ${activeSubbab === 'All' ? 'active' : ''}" onclick="selectSubbab('All')"><span>Semua</span><span class="pill-count">${allCount}</span></div>`;
+
+    subList.forEach(s => {
+      const count = notes.filter(n => n.folder === activeFolder && (n.subbab || '') === s).length;
+      pillsHTML += `
+        <div class="subbab-pill ${activeSubbab === s ? 'active' : ''}" onclick="selectSubbab('${jsEscape(s)}')">
+          <span>${escapeHtml(s)}</span>
+          <span class="pill-count">${count}</span>
+          <button class="pill-icon-btn" title="Unduh PDF sub bab ini" onclick="event.stopPropagation(); exportPDF('${jsEscape(activeFolder)}','${jsEscape(s)}')">⬇</button>
+          <button class="pill-icon-btn danger" title="Hapus sub bab" onclick="event.stopPropagation(); deleteSubbab('${jsEscape(activeFolder)}','${jsEscape(s)}')">✖</button>
+        </div>
+      `;
+    });
+
+    pillsHTML += `<div class="subbab-pill add-pill" onclick="addSubbabPrompt()">+ Sub Bab</div>`;
+
+    container.innerHTML = `
+      <div class="subbab-header">
+        <h3>Sub Bab dalam "${escapeHtml(activeFolder)}"</h3>
+        <button class="btn-folder-download" onclick="exportPDF('${jsEscape(activeFolder)}','All')">📥 Unduh PDF Folder Ini</button>
+      </div>
+      <div class="subbab-pills">${pillsHTML}</div>
+    `;
+  }
+
+  function addSubbabPrompt() {
+    openInputModal('Tambah Sub Bab Baru', `Nama sub bab untuk folder "${activeFolder}"...`, (val) => {
+      if (!folderSubbabs[activeFolder]) folderSubbabs[activeFolder] = [];
+      if (!folderSubbabs[activeFolder].includes(val)) folderSubbabs[activeFolder].push(val);
+      activeSubbab = val;
+      save();
+    });
+  }
+
+  function selectSubbab(name) { activeSubbab = name; renderSubbabSection(); renderNotes(); }
+
+  function deleteSubbab(folderName, subName) {
+    if (!confirm(`Hapus sub bab "${subName}"? Catatan di dalamnya akan dipindahkan ke "Tanpa Sub Bab".`)) return;
+    folderSubbabs[folderName] = (folderSubbabs[folderName] || []).filter(s => s !== subName);
+    notes.forEach(n => { if (n.folder === folderName && n.subbab === subName) n.subbab = ''; });
+    if (activeSubbab === subName) activeSubbab = 'All';
+    save();
+  }
+
+  /* ---------- MODAL: Buat / Edit Catatan ---------- */
+
+  function refreshSubbabOptions(folderName, preselect) {
+    const subbabSelect = document.getElementById('subbabSelect');
+    const list = folderSubbabs[folderName] || [];
+    let html = `<option value="">Tanpa Sub Bab</option>`;
+    list.forEach(s => { html += `<option value="${escapeHtml(s)}" ${s === preselect ? 'selected' : ''}>${escapeHtml(s)}</option>`; });
+    html += `<option value="__new__">+ Tambah Sub Bab Baru...</option>`;
+    subbabSelect.innerHTML = html;
+  }
+
+  function onModalFolderChange() {
+    const folderSelect = document.getElementById('folderSelect');
+    refreshSubbabOptions(folderSelect.value, '');
+  }
+
+  function onModalSubbabChange() {
+    const subbabSelect = document.getElementById('subbabSelect');
+    if (subbabSelect.value === '__new__') {
+      const folderSelect = document.getElementById('folderSelect');
+      const folderName = folderSelect.value;
+      openInputModal('Tambah Sub Bab Baru', `Nama sub bab untuk folder "${folderName}"...`, (val) => {
+        if (!folderSubbabs[folderName]) folderSubbabs[folderName] = [];
+        if (!folderSubbabs[folderName].includes(val)) folderSubbabs[folderName].push(val);
+        persist();
+        refreshSubbabOptions(folderName, val);
+      });
+      subbabSelect.value = '';
+    }
+  }
+
+  function openModal() {
+    editingId = null;
+    document.getElementById('modalTitleLabel').innerText = 'Catatan Baru';
+    document.getElementById('qInput').value = '';
+    document.getElementById('editor').innerHTML = '';
+
+    const select = document.getElementById('folderSelect');
+    let defaultFolder;
+    if (activeFolder !== 'All Notes') { select.value = activeFolder; defaultFolder = activeFolder; }
+    else if (select.options.length > 0) { select.selectedIndex = 0; defaultFolder = select.value; }
+
+    const defaultSubbab = (activeFolder !== 'All Notes' && activeSubbab !== 'All') ? activeSubbab : '';
+    refreshSubbabOptions(defaultFolder, defaultSubbab);
+
+    document.getElementById('modalOverlay').classList.add('active');
+    if (!isMobile()) document.getElementById('qInput').focus();
+  }
+
+  function editNote(id) {
+    const n = notes.find(item => item.id === id);
+    if (!n) return;
+    closeReadModal();
+    editingId = id;
+    document.getElementById('modalTitleLabel').innerText = 'Edit Catatan';
+    document.getElementById('qInput').value = n.question;
+    document.getElementById('editor').innerHTML = n.answer;
+    document.getElementById('folderSelect').value = n.folder;
+    refreshSubbabOptions(n.folder, n.subbab || '');
+    document.getElementById('modalOverlay').classList.add('active');
+  }
+
+  function closeModal() { document.getElementById('modalOverlay').classList.remove('active'); editingId = null; }
+
+  function execCmd(cmd) { document.execCommand(cmd, false, null); document.getElementById('editor').focus(); }
+
+  function saveNote() {
+    const q = document.getElementById('qInput').value.trim();
+    const content = document.getElementById('editor').innerHTML.trim();
+    let f = document.getElementById('folderSelect').value;
+    if (!f) f = 'General';
+    let sb = document.getElementById('subbabSelect').value;
+    if (sb === '__new__') sb = '';
+
+    if (!q) { alert('Pertanyaan / judul tidak boleh kosong!'); return; }
+
+    if (editingId) {
+      const n = notes.find(item => item.id === editingId);
+      if (n) { n.question = q; n.answer = content; n.folder = f; n.subbab = sb; }
+    } else {
+      notes.unshift({ id: Date.now(), question: q, answer: content, folder: f, subbab: sb, date: new Date().toLocaleDateString('en-GB') });
+    }
+
+    closeModal();
+    save();
+  }
+
+  /* ---------- MODAL: baca catatan (halaman notebook) ---------- */
+
+  function openReadModal(id) {
+    const n = notes.find(item => item.id === id);
+    if (!n) return;
+    readingId = id;
+
+    const content = document.getElementById('readPageContent');
+    content.innerHTML = `
+      <div class="margin-line"></div>
+      <div class="note-stamp">${escapeHtml(n.date)}</div>
+      <div class="note-tag">${escapeHtml(n.folder)}${n.subbab ? ' • ' + escapeHtml(n.subbab) : ''}</div>
+      <div class="read-q">${escapeHtml(n.question)}</div>
+      <div class="read-answer">${n.answer || ''}</div>
+      <div class="read-meta">ID: ${n.id.toString().slice(-4)}</div>
+    `;
+
+    document.getElementById('readEditBtn').onclick = () => editNote(id);
+    document.getElementById('readDeleteBtn').onclick = () => { closeReadModal(); deleteNote(id); };
+
+    document.getElementById('readOverlay').classList.add('active');
+  }
+
+  function closeReadModal() { document.getElementById('readOverlay').classList.remove('active'); readingId = null; }
+
+  /* ---------- MODAL INPUT GENERIK ---------- */
+
+  function openInputModal(title, placeholder, callback) {
+    document.getElementById('inputModalTitleLabel').innerText = title;
+    const field = document.getElementById('inputModalField');
+    field.placeholder = placeholder;
+    field.value = '';
+    inputModalCallback = callback;
+    document.getElementById('inputModalOverlay').classList.add('active');
+    if (!isMobile()) setTimeout(() => field.focus(), 50);
+  }
+
+  function closeInputModal() { document.getElementById('inputModalOverlay').classList.remove('active'); inputModalCallback = null; }
+
+  function confirmInputModal() {
+    const field = document.getElementById('inputModalField');
+    const val = field.value.trim();
+    if (!val) { alert('Nama tidak boleh kosong!'); return; }
+    const cb = inputModalCallback;
+    closeInputModal();
+    if (cb) cb(val);
+  }
+
+  /* ---------- NOTES LIST ---------- */
+
+  function renderNotes() {
+    const grid = document.getElementById('notesGrid');
+    const title = document.getElementById('notesTitle');
+    const search = document.getElementById('searchInput').value.toLowerCase();
+
+    let titleText = activeFolder === 'All Notes' ? 'Semua Catatan' : `Catatan: ${activeFolder}`;
+    if (activeFolder !== 'All Notes' && activeSubbab !== 'All') titleText += ` — ${activeSubbab}`;
+    title.innerText = titleText;
+    grid.innerHTML = '';
+
+    let list = activeFolder === 'All Notes' ? notes.slice() : notes.filter(n => n.folder === activeFolder);
+    if (activeFolder !== 'All Notes' && activeSubbab !== 'All') list = list.filter(n => (n.subbab || '') === activeSubbab);
+
+    if (search) {
+      list = list.filter(n => n.question.toLowerCase().includes(search) || stripHtml(n.answer).toLowerCase().includes(search));
+    }
+
+    if (!dataLoaded) { grid.innerHTML = '<div class="empty-state">Memuat catatan...</div>'; return; }
+
+    if (list.length === 0) {
+      grid.innerHTML = '<div class="empty-state">📓 Belum ada catatan di sini.<br>Ketuk tombol "Catatan Baru" untuk mulai menulis.</div>';
+      return;
+    }
+
+    list.forEach((n, idx) => {
+      const el = document.createElement('div');
+      el.className = 'note-card';
+      el.onclick = () => openReadModal(n.id);
+      const answerText = n.answer || '';
+      const isLong = stripHtml(answerText).length > 160;
+      el.innerHTML = `
+        <div class="margin-line"></div>
+        <div>
+          <div class="note-top-row">
+            <div class="note-tag">${escapeHtml(n.folder)}${n.subbab ? ' • ' + escapeHtml(n.subbab) : ''}</div>
+            <div class="note-stamp">${escapeHtml(n.date)}</div>
+          </div>
+          <div class="note-q-row">
+            <div class="note-q-badge">Q</div>
+            <div class="note-q">${escapeHtml(n.question)}</div>
+          </div>
+        </div>
+        <div>
+          <div class="note-content ${isLong ? 'fade-clip' : ''}">${answerText}</div>
+          ${isLong ? '<div class="note-tap-hint">Ketuk untuk baca selengkapnya →</div>' : ''}
+          <div class="note-foot">
+            <span>ID: ${n.id.toString().slice(-4)}</span>
+            <div class="note-foot-actions">
+              <button class="btn-edit-note" onclick="event.stopPropagation(); editNote(${n.id})" title="Edit">✏️</button>
+              <button class="btn-delete-note" onclick="event.stopPropagation(); deleteNote(${n.id})" title="Hapus">🗑️</button>
+            </div>
+          </div>
+        </div>
+      `;
+      grid.appendChild(el);
+    });
+  }
+
+  function deleteNote(id) {
+    if (confirm('Hapus catatan ini?')) { notes = notes.filter(n => n.id !== id); save(); }
+  }
+
+  function render() { renderFolders(); renderSubbabSection(); renderNotes(); }
+
+  function escapeHtml(str) { return (str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+  function jsEscape(str) { return (str || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'"); }
+  function stripHtml(html) { const tmp = document.createElement('div'); tmp.innerHTML = html || ''; return tmp.textContent || tmp.innerText || ''; }
+
+  /* ---------- EXPORT / IMPORT ---------- */
+
+  function exportPDF(folderName, subbabName) {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    let list = (!folderName || folderName === 'All Notes') ? notes.slice() : notes.filter(n => n.folder === folderName);
+    if (subbabName && subbabName !== 'All') list = list.filter(n => (n.subbab || '') === subbabName);
+
+    if (list.length === 0) { alert('Tidak ada catatan untuk diekspor.'); return; }
+
+    const marginX = 20;
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const contentWidth = pageWidth - marginX * 2;
+    let y = 25;
+
+    let mainTitle = (folderName && folderName !== 'All Notes') ? folderName : 'Semua Catatan';
+    if (subbabName && subbabName !== 'All') mainTitle += ' — ' + subbabName;
+
+    doc.setFont('times', 'bold'); doc.setFontSize(18); doc.text(mainTitle, marginX, y);
+    y += 6; doc.setDrawColor(210); doc.line(marginX, y, pageWidth - marginX, y); y += 12;
+
+    let grouped = {};
+    if (!subbabName || subbabName === 'All') {
+      list.forEach(n => { const key = n.subbab || 'Umum'; if (!grouped[key]) grouped[key] = []; grouped[key].push(n); });
+    } else { grouped[subbabName] = list; }
+
+    const groupKeys = Object.keys(grouped);
+
+    groupKeys.forEach(subKey => {
+      if (groupKeys.length > 1) {
+        if (y + 14 > pageHeight - 20) { doc.addPage(); y = 25; }
+        doc.setFont('times', 'bolditalic'); doc.setFontSize(13); doc.setTextColor(60);
+        doc.text(subKey, marginX, y); doc.setTextColor(0); y += 8;
       }
 
-      const savedFolders = localStorage.getItem(STORAGE_KEY_FOLDERS);
-      if (savedFolders) {
-        try { folders = JSON.parse(savedFolders); } catch(e) {}
-      }
+      grouped[subKey].forEach((n, idx) => {
+        doc.setFont('times', 'normal'); doc.setFontSize(11);
+        const qLines = doc.splitTextToSize(`${idx + 1}. ${n.question}`, contentWidth);
+        const aLines = doc.splitTextToSize(stripHtml(n.answer) || '(tidak ada isi)', contentWidth);
 
-      const savedSubbabs = localStorage.getItem(STORAGE_KEY_SUBBABS);
-      if (savedSubbabs) {
-        try { folderSubbabs = JSON.parse(savedSubbabs); } catch(e) {}
-      }
+        const blockHeight = qLines.length * 6 + 6 + aLines.length * 5.5 + 10;
+        if (y + blockHeight > pageHeight - 20) { doc.addPage(); y = 25; }
 
-      const customFoldersFromNotes = [...new Set(notes.map(n => n.folder))];
-      customFoldersFromNotes.forEach(f => {
-        if (f && !folders.includes(f)) folders.push(f);
-      });
+        doc.setFont('times', 'bold'); doc.setFontSize(12); doc.text(qLines, marginX, y); y += qLines.length * 6;
 
-      notes.forEach(n => {
-        if (n.subbab) {
-          if (!folderSubbabs[n.folder]) folderSubbabs[n.folder] = [];
-          if (!folderSubbabs[n.folder].includes(n.subbab)) folderSubbabs[n.folder].push(n.subbab);
-        }
-      });
+        doc.setFont('times', 'italic'); doc.setFontSize(9); doc.setTextColor(140);
+        doc.text(n.date, marginX, y); doc.setTextColor(0); y += 6;
 
-      render();
+        doc.setFont('times', 'normal'); doc.setFontSize(11); doc.text(aLines, marginX, y); y += aLines.length * 5.5 + 8;
 
-      document.addEventListener('click', (e) => {
-        if (!e.target.closest('.profile-area')) {
-          document.getElementById('profileDropdown').classList.remove('show');
-        }
-      });
-
-      window.addEventListener('resize', () => {
-        renderFolders();
-      });
-
-      document.getElementById('inputModalField').addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') { e.preventDefault(); confirmInputModal(); }
+        doc.setDrawColor(232); doc.line(marginX, y - 4, pageWidth - marginX, y - 4);
       });
     });
 
-    function save() {
-      localStorage.setItem(STORAGE_KEY_NOTES, JSON.stringify(notes));
-      localStorage.setItem(STORAGE_KEY_FOLDERS, JSON.stringify(folders));
-      localStorage.setItem(STORAGE_KEY_SUBBABS, JSON.stringify(folderSubbabs));
-      render();
+    const pageCount = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFont('times', 'italic'); doc.setFontSize(9); doc.setTextColor(150);
+      doc.text(`Mino Notes • Halaman ${i} dari ${pageCount}`, pageWidth / 2, pageHeight - 10, { align: 'center' });
+      doc.setTextColor(0);
     }
 
-    function toggleProfileMenu(e) {
-      e.stopPropagation();
-      document.getElementById('profileDropdown').classList.toggle('show');
-    }
+    const namePart = (subbabName && subbabName !== 'All') ? subbabName : (folderName || 'all');
+    doc.save(`mino_notes_${namePart.replace(/\s+/g, '_')}_${Date.now()}.pdf`);
+  }
 
-    /* ---------- FOLDERS ---------- */
+  function exportJSON() {
+    if (!notes.length) { alert('Data kosong.'); return; }
+    const payload = { notes, folders, folderSubbabs };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `mino_notes_backup_${Date.now()}.json`;
+    a.click();
+  }
 
-    function renderFolders() {
-      const container = document.getElementById('foldersContainer');
-      const select = document.getElementById('folderSelect');
-      const prevBtn = document.getElementById('btnPrevFolder');
-      const nextBtn = document.getElementById('btnNextFolder');
-
-      const foldersPerPage = getFoldersPerPage();
-      const totalPages = Math.ceil(folders.length / foldersPerPage) || 1;
-
-      if (folderCurrentPage < 0) folderCurrentPage = 0;
-      if (folderCurrentPage >= totalPages) folderCurrentPage = totalPages - 1;
-
-      prevBtn.disabled = (folderCurrentPage === 0);
-      nextBtn.disabled = (folderCurrentPage >= totalPages - 1);
-
-      const startIndex = folderCurrentPage * foldersPerPage;
-      const visibleFolders = folders.slice(startIndex, startIndex + foldersPerPage);
-
-      let folderHTML = '';
-
-      visibleFolders.forEach((f) => {
-        const count = f === 'All Notes' ? notes.length : notes.filter(n => n.folder === f).length;
-        const isDefaultFolder = (f === 'All Notes');
-        const deleteBtnHtml = isDefaultFolder ? '' : `
-          <button class="btn-delete-folder" title="Hapus Folder" onclick="deleteFolder(event, '${jsEscape(f)}')">✖</button>
-        `;
-
-        folderHTML += `
-          <div class="folder-card ${activeFolder === f ? 'active' : ''}" onclick="selectFolder('${jsEscape(f)}')">
-            <div class="folder-top">
-              <div class="folder-icon">📂</div>
-              ${deleteBtnHtml}
-            </div>
-            <div>
-              <div class="folder-name">${escapeHtml(f)}</div>
-              <div class="folder-count">${count} notes</div>
-            </div>
-          </div>
-        `;
-      });
-
-      folderHTML += `
-        <div class="folder-card folder-add-btn" onclick="addCustomFolder()">
-          <div style="font-size: 20px; font-weight: bold;">+</div>
-          <div class="folder-name">New Folder</div>
-        </div>
-      `;
-
-      container.innerHTML = folderHTML;
-
-      const availableFoldersForSelect = folders.filter(f => f !== 'All Notes');
-      select.innerHTML = availableFoldersForSelect.map(f => `
-        <option value="${escapeHtml(f)}" ${f === activeFolder ? 'selected' : ''}>${escapeHtml(f)}</option>
-      `).join('');
-    }
-
-    function changeFolderPage(dir) {
-      folderCurrentPage += dir;
-      renderFolders();
-    }
-
-    function selectFolder(fName) {
-      activeFolder = fName;
-      activeSubbab = 'All';
-      render();
-    }
-
-    function addCustomFolder() {
-      openInputModal('Tambah Folder Baru', 'Nama folder / kategori...', (val) => {
-        if (!folders.includes(val)) folders.push(val);
-        activeFolder = val;
-        activeSubbab = 'All';
-
-        const foldersPerPage = getFoldersPerPage();
-        folderCurrentPage = Math.floor((folders.length - 1) / foldersPerPage);
+  function importJSON(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      try {
+        const imported = JSON.parse(evt.target.result);
+        if (Array.isArray(imported)) { notes = imported; }
+        else if (imported && Array.isArray(imported.notes)) {
+          notes = imported.notes;
+          if (Array.isArray(imported.folders)) folders = imported.folders;
+          if (imported.folderSubbabs && typeof imported.folderSubbabs === 'object') folderSubbabs = imported.folderSubbabs;
+        } else { throw new Error('Format tidak dikenali'); }
         save();
-      });
-    }
-
-    function deleteFolder(event, folderName) {
-      event.stopPropagation();
-
-      if (folderName === 'All Notes') return;
-
-      const notesInFolder = notes.filter(n => n.folder === folderName).length;
-      let confirmMsg = `Yakin ingin menghapus folder "${folderName}"?`;
-      if (notesInFolder > 0) {
-        confirmMsg += `\n\nAda ${notesInFolder} catatan di folder ini. Catatan akan dipindahkan ke folder 'General'.`;
-      }
-
-      if (confirm(confirmMsg)) {
-        folders = folders.filter(f => f !== folderName);
-        delete folderSubbabs[folderName];
-
-        notes.forEach(n => {
-          if (n.folder === folderName) {
-            n.folder = 'General';
-            n.subbab = '';
-          }
-        });
-
-        if (notes.some(n => n.folder === 'General') && !folders.includes('General')) {
-          folders.push('General');
-        }
-
-        if (activeFolder === folderName) {
-          activeFolder = 'All Notes';
-          activeSubbab = 'All';
-        }
-
-        save();
-      }
-    }
-
-    /* ---------- SUB BAB ---------- */
-
-    function renderSubbabSection() {
-      const container = document.getElementById('subbabSectionContainer');
-
-      if (activeFolder === 'All Notes') {
-        container.style.display = 'none';
-        container.innerHTML = '';
-        return;
-      }
-      container.style.display = 'block';
-
-      const subList = folderSubbabs[activeFolder] || [];
-      const allCount = notes.filter(n => n.folder === activeFolder).length;
-
-      let pillsHTML = `
-        <div class="subbab-pill ${activeSubbab === 'All' ? 'active' : ''}" onclick="selectSubbab('All')">
-          <span>Semua</span><span class="pill-count">${allCount}</span>
-        </div>
-      `;
-
-      subList.forEach(s => {
-        const count = notes.filter(n => n.folder === activeFolder && (n.subbab || '') === s).length;
-        pillsHTML += `
-          <div class="subbab-pill ${activeSubbab === s ? 'active' : ''}" onclick="selectSubbab('${jsEscape(s)}')">
-            <span>${escapeHtml(s)}</span>
-            <span class="pill-count">${count}</span>
-            <button class="pill-icon-btn" title="Unduh PDF sub bab ini" onclick="event.stopPropagation(); exportPDF('${jsEscape(activeFolder)}','${jsEscape(s)}')">⬇</button>
-            <button class="pill-icon-btn danger" title="Hapus sub bab" onclick="event.stopPropagation(); deleteSubbab('${jsEscape(activeFolder)}','${jsEscape(s)}')">✖</button>
-          </div>
-        `;
-      });
-
-      pillsHTML += `
-        <div class="subbab-pill add-pill" onclick="addSubbabPrompt()">+ Sub Bab</div>
-      `;
-
-      container.innerHTML = `
-        <div class="subbab-header">
-          <h3>Sub Bab dalam "${escapeHtml(activeFolder)}"</h3>
-          <button class="btn-folder-download" onclick="exportPDF('${jsEscape(activeFolder)}','All')">📥 Unduh PDF Folder Ini</button>
-        </div>
-        <div class="subbab-pills">${pillsHTML}</div>
-      `;
-    }
-
-    function addSubbabPrompt() {
-      openInputModal('Tambah Sub Bab Baru', `Nama sub bab untuk folder "${activeFolder}"...`, (val) => {
-        if (!folderSubbabs[activeFolder]) folderSubbabs[activeFolder] = [];
-        if (!folderSubbabs[activeFolder].includes(val)) folderSubbabs[activeFolder].push(val);
-        activeSubbab = val;
-        save();
-      });
-    }
-
-    function selectSubbab(name) {
-      activeSubbab = name;
-      renderSubbabSection();
-      renderNotes();
-    }
-
-    function deleteSubbab(folderName, subName) {
-      if (!confirm(`Hapus sub bab "${subName}"? Catatan di dalamnya akan dipindahkan ke "Tanpa Sub Bab".`)) return;
-
-      folderSubbabs[folderName] = (folderSubbabs[folderName] || []).filter(s => s !== subName);
-      notes.forEach(n => {
-        if (n.folder === folderName && n.subbab === subName) n.subbab = '';
-      });
-      if (activeSubbab === subName) activeSubbab = 'All';
-      save();
-    }
-
-    /* ---------- MODAL: Buat / Edit Catatan ---------- */
-
-    function refreshSubbabOptions(folderName, preselect) {
-      const subbabSelect = document.getElementById('subbabSelect');
-      const list = folderSubbabs[folderName] || [];
-      let html = `<option value="">Tanpa Sub Bab</option>`;
-      list.forEach(s => {
-        html += `<option value="${escapeHtml(s)}" ${s === preselect ? 'selected' : ''}>${escapeHtml(s)}</option>`;
-      });
-      html += `<option value="__new__">+ Tambah Sub Bab Baru...</option>`;
-      subbabSelect.innerHTML = html;
-    }
-
-    function onModalFolderChange() {
-      const folderSelect = document.getElementById('folderSelect');
-      refreshSubbabOptions(folderSelect.value, '');
-    }
-
-    function onModalSubbabChange() {
-      const subbabSelect = document.getElementById('subbabSelect');
-      if (subbabSelect.value === '__new__') {
-        const folderSelect = document.getElementById('folderSelect');
-        const folderName = folderSelect.value;
-
-        openInputModal('Tambah Sub Bab Baru', `Nama sub bab untuk folder "${folderName}"...`, (val) => {
-          if (!folderSubbabs[folderName]) folderSubbabs[folderName] = [];
-          if (!folderSubbabs[folderName].includes(val)) folderSubbabs[folderName].push(val);
-          localStorage.setItem(STORAGE_KEY_SUBBABS, JSON.stringify(folderSubbabs));
-          refreshSubbabOptions(folderName, val);
-        });
-
-        // batalkan sementara pilihan "__new__" sampai modal selesai
-        subbabSelect.value = '';
-      }
-    }
-
-    function openModal() {
-      editingId = null;
-      document.getElementById('modalTitleLabel').innerText = 'Catatan Baru';
-      document.getElementById('qInput').value = '';
-      document.getElementById('editor').innerHTML = '';
-
-      const select = document.getElementById('folderSelect');
-      let defaultFolder;
-      if (activeFolder !== 'All Notes') {
-        select.value = activeFolder;
-        defaultFolder = activeFolder;
-      } else if (select.options.length > 0) {
-        select.selectedIndex = 0;
-        defaultFolder = select.value;
-      }
-
-      const defaultSubbab = (activeFolder !== 'All Notes' && activeSubbab !== 'All') ? activeSubbab : '';
-      refreshSubbabOptions(defaultFolder, defaultSubbab);
-
-      document.getElementById('modalOverlay').classList.add('active');
-      document.getElementById('qInput').focus();
-    }
-
-    function editNote(id) {
-      const n = notes.find(item => item.id === id);
-      if (!n) return;
-
-      editingId = id;
-      document.getElementById('modalTitleLabel').innerText = 'Edit Catatan';
-      document.getElementById('qInput').value = n.question;
-      document.getElementById('editor').innerHTML = n.answer;
-      document.getElementById('folderSelect').value = n.folder;
-      refreshSubbabOptions(n.folder, n.subbab || '');
-
-      document.getElementById('modalOverlay').classList.add('active');
-    }
-
-    function closeModal() {
-      document.getElementById('modalOverlay').classList.remove('active');
-      editingId = null;
-    }
-
-    function execCmd(cmd) {
-      document.execCommand(cmd, false, null);
-      document.getElementById('editor').focus();
-    }
-
-    function saveNote() {
-      const q = document.getElementById('qInput').value.trim();
-      const content = document.getElementById('editor').innerHTML.trim();
-      let f = document.getElementById('folderSelect').value;
-      if (!f) f = 'General';
-      let sb = document.getElementById('subbabSelect').value;
-      if (sb === '__new__') sb = '';
-
-      if (!q) { alert('Pertanyaan / judul tidak boleh kosong!'); return; }
-
-      if (editingId) {
-        const n = notes.find(item => item.id === editingId);
-        if (n) {
-          n.question = q;
-          n.answer = content;
-          n.folder = f;
-          n.subbab = sb;
-        }
-      } else {
-        notes.unshift({
-          id: Date.now(),
-          question: q,
-          answer: content,
-          folder: f,
-          subbab: sb,
-          date: new Date().toLocaleDateString('en-GB')
-        });
-      }
-
-      closeModal();
-      save();
-    }
-
-    /* ---------- MODAL INPUT GENERIK (Tambah Folder / Sub Bab) ---------- */
-
-    function openInputModal(title, placeholder, callback) {
-      document.getElementById('inputModalTitleLabel').innerText = title;
-      const field = document.getElementById('inputModalField');
-      field.placeholder = placeholder;
-      field.value = '';
-      inputModalCallback = callback;
-      document.getElementById('inputModalOverlay').classList.add('active');
-      setTimeout(() => field.focus(), 50);
-    }
-
-    function closeInputModal() {
-      document.getElementById('inputModalOverlay').classList.remove('active');
-      inputModalCallback = null;
-    }
-
-    function confirmInputModal() {
-      const field = document.getElementById('inputModalField');
-      const val = field.value.trim();
-      if (!val) { alert('Nama tidak boleh kosong!'); return; }
-      const cb = inputModalCallback;
-      closeInputModal();
-      if (cb) cb(val);
-    }
-
-    /* ---------- NOTES LIST ---------- */
-
-    function renderNotes() {
-      const grid = document.getElementById('notesGrid');
-      const title = document.getElementById('notesTitle');
-      const search = document.getElementById('searchInput').value.toLowerCase();
-
-      let titleText = activeFolder === 'All Notes' ? 'Semua Catatan' : `Catatan: ${activeFolder}`;
-      if (activeFolder !== 'All Notes' && activeSubbab !== 'All') titleText += ` — ${activeSubbab}`;
-      title.innerText = titleText;
-      grid.innerHTML = '';
-
-      let list = activeFolder === 'All Notes' ? notes.slice() : notes.filter(n => n.folder === activeFolder);
-
-      if (activeFolder !== 'All Notes' && activeSubbab !== 'All') {
-        list = list.filter(n => (n.subbab || '') === activeSubbab);
-      }
-
-      if (search) {
-        list = list.filter(n =>
-          n.question.toLowerCase().includes(search) ||
-          stripHtml(n.answer).toLowerCase().includes(search)
-        );
-      }
-
-      if (list.length === 0) {
-        grid.innerHTML = '<div style="color: var(--text-muted); grid-column: 1/-1;">Belum ada catatan di sini.</div>';
-        return;
-      }
-
-      list.forEach(n => {
-        const el = document.createElement('div');
-        el.className = 'note-card';
-        el.innerHTML = `
-          <div>
-            <div class="note-tag">${escapeHtml(n.folder)}${n.subbab ? ' • ' + escapeHtml(n.subbab) : ''} • ${n.date}</div>
-            <div class="note-q">${escapeHtml(n.question)}</div>
-          </div>
-          <div>
-            <div class="note-content">${n.answer || ''}</div>
-            <div class="note-foot">
-              <span>ID: ${n.id.toString().slice(-4)}</span>
-              <div class="note-foot-actions">
-                <button class="btn-edit-note" onclick="editNote(${n.id})">Edit</button>
-                <button class="btn-delete-note" onclick="deleteNote(${n.id})">Hapus</button>
-              </div>
-            </div>
-          </div>
-        `;
-        grid.appendChild(el);
-      });
-    }
-
-    function deleteNote(id) {
-      if (confirm('Hapus catatan ini?')) {
-        notes = notes.filter(n => n.id !== id);
-        save();
-      }
-    }
-
-    function render() {
-      renderFolders();
-      renderSubbabSection();
-      renderNotes();
-    }
-
-    function escapeHtml(str) {
-      return (str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-    }
-
-    // aman untuk disisipkan ke dalam string JS berkutip-satu di atribut onclick
-    function jsEscape(str) {
-      return (str || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-    }
-
-    function stripHtml(html) {
-      const tmp = document.createElement('div');
-      tmp.innerHTML = html || '';
-      return tmp.textContent || tmp.innerText || '';
-    }
-
-    /* ---------- EXPORT / IMPORT ---------- */
-
-    function exportPDF(folderName, subbabName) {
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
-
-      let list = (!folderName || folderName === 'All Notes') ? notes.slice() : notes.filter(n => n.folder === folderName);
-      if (subbabName && subbabName !== 'All') {
-        list = list.filter(n => (n.subbab || '') === subbabName);
-      }
-
-      if (list.length === 0) {
-        alert('Tidak ada catatan untuk diekspor.');
-        return;
-      }
-
-      const marginX = 20;
-      const pageWidth = doc.internal.pageSize.getWidth();
-      const pageHeight = doc.internal.pageSize.getHeight();
-      const contentWidth = pageWidth - marginX * 2;
-      let y = 25;
-
-      let mainTitle = (folderName && folderName !== 'All Notes') ? folderName : 'Semua Catatan';
-      if (subbabName && subbabName !== 'All') mainTitle += ' — ' + subbabName;
-
-      doc.setFont('times', 'bold');
-      doc.setFontSize(18);
-      doc.text(mainTitle, marginX, y);
-      y += 6;
-      doc.setDrawColor(210);
-      doc.line(marginX, y, pageWidth - marginX, y);
-      y += 12;
-
-      // kelompokkan per sub bab kalau sedang menampilkan seluruh folder
-      let grouped = {};
-      if (!subbabName || subbabName === 'All') {
-        list.forEach(n => {
-          const key = n.subbab || 'Umum';
-          if (!grouped[key]) grouped[key] = [];
-          grouped[key].push(n);
-        });
-      } else {
-        grouped[subbabName] = list;
-      }
-
-      const groupKeys = Object.keys(grouped);
-
-      groupKeys.forEach(subKey => {
-        if (groupKeys.length > 1) {
-          if (y + 14 > pageHeight - 20) { doc.addPage(); y = 25; }
-          doc.setFont('times', 'bolditalic');
-          doc.setFontSize(13);
-          doc.setTextColor(60);
-          doc.text(subKey, marginX, y);
-          doc.setTextColor(0);
-          y += 8;
-        }
-
-        grouped[subKey].forEach((n, idx) => {
-          doc.setFont('times', 'normal');
-          doc.setFontSize(11);
-          const qLines = doc.splitTextToSize(`${idx + 1}. ${n.question}`, contentWidth);
-          const aLines = doc.splitTextToSize(stripHtml(n.answer) || '(tidak ada isi)', contentWidth);
-
-          const blockHeight = qLines.length * 6 + 6 + aLines.length * 5.5 + 10;
-          if (y + blockHeight > pageHeight - 20) { doc.addPage(); y = 25; }
-
-          doc.setFont('times', 'bold');
-          doc.setFontSize(12);
-          doc.text(qLines, marginX, y);
-          y += qLines.length * 6;
-
-          doc.setFont('times', 'italic');
-          doc.setFontSize(9);
-          doc.setTextColor(140);
-          doc.text(n.date, marginX, y);
-          doc.setTextColor(0);
-          y += 6;
-
-          doc.setFont('times', 'normal');
-          doc.setFontSize(11);
-          doc.text(aLines, marginX, y);
-          y += aLines.length * 5.5 + 8;
-
-          doc.setDrawColor(232);
-          doc.line(marginX, y - 4, pageWidth - marginX, y - 4);
-        });
-      });
-
-      const pageCount = doc.internal.getNumberOfPages();
-      for (let i = 1; i <= pageCount; i++) {
-        doc.setPage(i);
-        doc.setFont('times', 'italic');
-        doc.setFontSize(9);
-        doc.setTextColor(150);
-        doc.text(`Mino Notes • Halaman ${i} dari ${pageCount}`, pageWidth / 2, pageHeight - 10, { align: 'center' });
-        doc.setTextColor(0);
-      }
-
-      const namePart = (subbabName && subbabName !== 'All') ? subbabName : (folderName || 'all');
-      doc.save(`mino_notes_${namePart.replace(/\s+/g, '_')}_${Date.now()}.pdf`);
-    }
-
-    function exportJSON() {
-      if (!notes.length) { alert('Data kosong.'); return; }
-      const payload = { notes, folders, folderSubbabs };
-      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = `mino_notes_backup_${Date.now()}.json`;
-      a.click();
-    }
-
-    function importJSON(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = (evt) => {
-        try {
-          const imported = JSON.parse(evt.target.result);
-          if (Array.isArray(imported)) {
-            notes = imported;
-          } else if (imported && Array.isArray(imported.notes)) {
-            notes = imported.notes;
-            if (Array.isArray(imported.folders)) folders = imported.folders;
-            if (imported.folderSubbabs && typeof imported.folderSubbabs === 'object') folderSubbabs = imported.folderSubbabs;
-          } else {
-            throw new Error('Format tidak dikenali');
-          }
-          save();
-          alert('Import berhasil!');
-        } catch { alert('File JSON tidak valid.'); }
-      };
-      reader.readAsText(file);
-      e.target.value = '';
-    }
-  </script>
+        alert('Import berhasil!');
+      } catch { alert('File JSON tidak valid.'); }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  }
+</script>
 </body>
 </html>
