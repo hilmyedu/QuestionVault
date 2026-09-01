@@ -3,216 +3,288 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
-<title>Mini Notes</title>
+<title>Mino Notes</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <style>
   :root {
-    --bg-app: #f4f6fb;
-    --sidebar-bg: #ffffff;
-    --text-main: #14203a;
-    --text-muted: #67748c;
-    --primary: #2563eb;
-    --primary-dark: #1d4ed8;
-    --border: #e4e8f1;
-    --danger: #ef4444;
+    --paper: #efe8d8;
+    --paper-raised: #f8f4ea;
+    --ink: #211d17;
+    --ink-soft: #6b6455;
+    --line: #211d17;
+    --line-soft: #c9c0a9;
+    --danger: #8a3324;
     --safe-b: env(safe-area-inset-bottom, 0px);
     --safe-t: env(safe-area-inset-top, 0px);
   }
 
-  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Space Grotesk', sans-serif; -webkit-tap-highlight-color: transparent; }
   html, body { overscroll-behavior-y: contain; }
-  body { background-color: var(--bg-app); color: var(--text-main); display: flex; height: 100vh; height: 100dvh; overflow: hidden; }
+  body { background-color: var(--paper); color: var(--ink); display: flex; height: 100vh; height: 100dvh; overflow: hidden; }
   button { touch-action: manipulation; font-family: inherit; }
 
+  /* retro halftone dot strip, used sparingly as a signature texture */
+  .dot-strip {
+    height: 10px; flex-shrink: 0;
+    background-image: radial-gradient(var(--ink) 1px, transparent 1.4px);
+    background-size: 7px 7px;
+    background-position: 0 -1px;
+    opacity: 0.85;
+  }
+
+  ::-webkit-scrollbar { width: 12px; height: 12px; }
+  ::-webkit-scrollbar-track { background: var(--paper); }
+  ::-webkit-scrollbar-thumb {
+    background: repeating-linear-gradient(45deg, var(--ink), var(--ink) 3px, var(--paper-raised) 3px, var(--paper-raised) 6px);
+    border: 2px solid var(--paper);
+  }
+
   /* ---------------- Sidebar (desktop) ---------------- */
-  aside { width: 240px; background: var(--sidebar-bg); padding: 24px 16px; display: flex; flex-direction: column; justify-content: space-between; border-right: 1px solid var(--border); flex-shrink: 0; }
-  .brand { font-weight: 800; font-size: 20px; display: flex; align-items: center; gap: 10px; padding-left: 10px; }
-  .brand-icon { width: 12px; height: 12px; background: var(--primary); border-radius: 50%; box-shadow: 14px 0 0 #ef4444, 28px 0 0 #eab308; }
-  .nav-menu { margin-top: 30px; list-style: none; display: flex; flex-direction: column; gap: 8px; }
-  .nav-item { padding: 12px 16px; border-radius: 12px; font-size: 14px; font-weight: 600; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; gap: 12px; transition: all 0.2s; }
-  .nav-item:hover, .nav-item.active { background: #eff6ff; color: var(--primary); }
+  aside { width: 250px; background: var(--paper-raised); padding: 0; display: flex; flex-direction: column; justify-content: space-between; border-right: 2px solid var(--line); flex-shrink: 0; }
+  .win-dots { display: flex; gap: 7px; padding: 16px 18px 12px; }
+  .win-dots span { width: 11px; height: 11px; border-radius: 50%; background: var(--ink); display: block; }
+  .win-dots span:nth-child(2) { opacity: .55; }
+  .win-dots span:nth-child(3) { opacity: .25; }
+
+  .brand { font-weight: 700; font-size: 19px; letter-spacing: -0.02em; padding: 0 18px 14px; border-bottom: 2px solid var(--line); }
+  .brand small { display: block; font-size: 10.5px; font-weight: 600; color: var(--ink-soft); letter-spacing: 0.06em; margin-top: 2px; }
+
+  .nav-menu { list-style: none; display: flex; flex-direction: column; padding: 10px 10px; }
+  .nav-item { padding: 10px 10px; font-size: 13.5px; font-weight: 600; color: var(--ink-soft); cursor: pointer; display: flex; align-items: center; gap: 10px; border: 2px solid transparent; }
+  .nav-item.active { background: var(--ink); color: var(--paper-raised); }
+
+  .sidebar-foot { padding: 12px 18px; border-top: 2px solid var(--line); font-size: 10.5px; font-weight: 600; color: var(--ink-soft); letter-spacing: 0.04em; }
+
+  /* ---------------- Sidebar folder list (channel-style nav) ---------------- */
+  .side-scroll { flex-grow: 1; overflow-y: auto; padding-bottom: 10px; }
+  .side-section-head { display: flex; align-items: center; gap: 9px; padding: 14px 18px 10px; font-size: 13.5px; font-weight: 700; color: var(--ink); cursor: pointer; user-select: none; }
+  .side-caret { width: 15px; height: 15px; border: 2px solid var(--ink); display: inline-flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; line-height: 1; flex-shrink: 0; }
+  .side-folder-icon { font-size: 14px; }
+  .channel-list { list-style: none; padding: 0 10px 0 26px; display: flex; flex-direction: column; gap: 1px; position: relative; }
+  .channel-list.collapsed { display: none; }
+  .channel-list::before { content: ''; position: absolute; left: 20px; top: 2px; bottom: 14px; width: 1px; background: var(--line-soft); }
+  .channel-item { position: relative; display: flex; align-items: center; gap: 7px; padding: 7px 10px 7px 12px; font-size: 13.5px; font-weight: 600; color: var(--ink-soft); cursor: pointer; }
+  .channel-item::before { content: ''; position: absolute; left: -6px; top: 50%; width: 8px; height: 1px; background: var(--line-soft); }
+  .channel-item:hover { color: var(--ink); }
+  .channel-item.active { color: var(--paper-raised); font-weight: 700; background: var(--ink); margin-left: -26px; padding-left: 38px; width: calc(100% + 26px); }
+  .channel-item.active::before { display: none; }
+  .channel-hash { flex-shrink: 0; opacity: .75; font-weight: 700; }
+  .channel-name { flex-grow: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .channel-badge { background: var(--ink); color: var(--paper-raised); font-size: 10.5px; font-weight: 700; border-radius: 999px; padding: 1px 7px; flex-shrink: 0; }
+  .channel-item.active .channel-badge { background: var(--paper-raised); color: var(--ink); }
+  .channel-del { display: none; background: none; border: none; color: var(--ink-soft); font-size: 12px; font-weight: 700; cursor: pointer; padding: 3px 4px; flex-shrink: 0; }
+  .channel-item:hover .channel-del { display: block; }
+  .channel-item:hover .channel-badge { display: none; }
+  .channel-item.active .channel-del { color: var(--paper-raised); }
+  .channel-del:hover { color: var(--danger); }
+  .channel-add { display: flex; align-items: center; gap: 7px; padding: 7px 10px 7px 12px; font-size: 13px; font-weight: 600; color: var(--ink-soft); cursor: pointer; position: relative; }
+  .channel-add::before { content: ''; position: absolute; left: -6px; top: 50%; width: 8px; height: 1px; background: var(--line-soft); }
+  .channel-add:hover { color: var(--ink); }
+
+  /* Notes nested under the active folder, tree-style */
+  .channel-notes { list-style: none; margin: 2px 0 6px 20px; padding-left: 12px; border-left: 1px solid var(--line-soft); display: flex; flex-direction: column; gap: 1px; }
+  .channel-note-item { font-size: 12px; font-weight: 600; color: var(--ink-soft); cursor: pointer; padding: 5px 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; position: relative; }
+  .channel-note-item::before { content: '·'; margin-right: 6px; opacity: .6; }
+  .channel-note-item:hover { color: var(--ink); background: var(--paper); }
+  .channel-note-item.add { font-style: italic; opacity: .85; }
+  .channel-note-item.empty { font-style: italic; opacity: .6; cursor: default; }
+  .channel-note-item.empty:hover { background: none; color: var(--ink-soft); }
 
   .mobile-topbar { display: none; }
 
   #app { flex-grow: 1; display: flex; flex-direction: column; height: 100vh; height: 100dvh; overflow: hidden; min-width: 0; }
 
-  header { min-height: 70px; background: #ffffff; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 32px; flex-shrink: 0; flex-wrap: nowrap; }
-  .search-box { background: var(--bg-app); padding: 10px 16px; border-radius: 20px; border: 1px solid var(--border); flex: 1 1 160px; min-width: 90px; max-width: 280px; font-size: 14px; outline: none; }
+  header { min-height: 62px; background: var(--paper-raised); border-bottom: 2px solid var(--line); display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 28px; flex-shrink: 0; flex-wrap: nowrap; }
+  .search-box { background: var(--paper); padding: 9px 14px; border-radius: 0; border: 2px solid var(--line); flex: 1 1 160px; min-width: 90px; max-width: 280px; font-size: 13.5px; font-weight: 600; outline: none; color: var(--ink); }
+  .search-box::placeholder { color: var(--ink-soft); font-weight: 500; }
 
   .profile-area { position: relative; }
-  .profile-btn { display: flex; align-items: center; gap: 10px; background: none; border: none; cursor: pointer; padding: 6px 12px; border-radius: 30px; transition: background 0.2s; min-height: 44px; flex-shrink: 0; }
-  .profile-btn:hover { background: var(--bg-app); }
-  .profile-btn .profile-label { white-space: nowrap; }
-  .avatar { width: 36px; height: 36px; border-radius: 50%; background: #3b82f6; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; flex-shrink: 0; }
+  .profile-btn { display: flex; align-items: center; gap: 9px; background: none; border: 2px solid var(--line); cursor: pointer; padding: 6px 12px; border-radius: 0; transition: background 0.15s; min-height: 42px; flex-shrink: 0; }
+  .profile-btn:hover { background: var(--ink); color: var(--paper-raised); }
+  .profile-btn .profile-label { white-space: nowrap; font-size: 12.5px; font-weight: 700; }
+  .avatar { width: 26px; height: 26px; border-radius: 50%; background: var(--ink); color: var(--paper-raised); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; flex-shrink: 0; }
+  .profile-btn:hover .avatar { background: var(--paper-raised); color: var(--ink); }
 
-  .dropdown-menu { position: absolute; right: 0; top: 54px; background: #fff; border: 1px solid var(--border); border-radius: 16px; width: 230px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); display: none; flex-direction: column; padding: 8px; z-index: 200; }
+  .dropdown-menu { position: absolute; right: 0; top: 52px; background: var(--paper-raised); border: 2px solid var(--line); border-radius: 0; width: 240px; box-shadow: 5px 5px 0 var(--ink); display: none; flex-direction: column; padding: 6px; z-index: 200; }
   .dropdown-menu.show { display: flex; }
-  .dropdown-item { padding: 12px 14px; font-size: 13px; font-weight: 600; color: var(--text-main); border-radius: 10px; cursor: pointer; display: flex; align-items: center; gap: 10px; border: none; background: none; width: 100%; text-align: left; min-height: 44px; }
-  .dropdown-item:hover { background: #f1f5f9; }
-  .dropdown-divider { height: 1px; background: var(--border); margin: 4px 0; }
+  .dropdown-item { padding: 11px 12px; font-size: 12.5px; font-weight: 700; color: var(--ink); border-radius: 0; cursor: pointer; display: flex; align-items: center; gap: 10px; border: none; background: none; width: 100%; text-align: left; min-height: 42px; }
+  .dropdown-item:hover { background: var(--ink); color: var(--paper-raised); }
+  .dropdown-divider { height: 2px; background: var(--line); margin: 4px 0; }
 
-  .sheet-backdrop { position: fixed; inset: 0; background: rgba(15,23,42,0.45); z-index: 150; opacity: 0; pointer-events: none; transition: opacity .2s ease; }
+  .sheet-backdrop { position: fixed; inset: 0; background: rgba(33,29,23,0.45); z-index: 150; opacity: 0; pointer-events: none; transition: opacity .2s ease; }
   .sheet-backdrop.show { opacity: 1; pointer-events: auto; }
 
-  .content-area { flex-grow: 1; padding: 20px 32px 32px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
-  .section-title { font-size: 16px; font-weight: 700; margin-bottom: 14px; color: #0f172a; }
+  .content-area { flex-grow: 1; padding: 22px 28px 32px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+  .section-title { font-size: 13px; font-weight: 700; margin-bottom: 12px; color: var(--ink); text-transform: none; }
 
-  /* ---------------- Folders ---------------- */
-  .folder-pagination-wrapper { display: flex; align-items: center; gap: 10px; margin-bottom: 22px; }
-  .btn-nav-arrow { background: #fff; border: 1px solid #cbd5e1; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: bold; flex-shrink: 0; user-select: none; }
+  /* ---------------- Folders (rendered like a channel rail) ---------------- */
+  .folder-pagination-wrapper { display: flex; align-items: center; gap: 8px; margin-bottom: 20px; }
+  .btn-nav-arrow { background: var(--paper-raised); border: 2px solid var(--line); border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: bold; flex-shrink: 0; user-select: none; }
+  .btn-nav-arrow:hover:not(:disabled) { background: var(--ink); color: var(--paper-raised); }
   .btn-nav-arrow:disabled { opacity: 0.3; cursor: not-allowed; }
-  .folders-grid { display: grid; grid-template-columns: repeat(var(--folder-cols, 5), 1fr); gap: 14px; flex-grow: 1; min-width: 0; }
+  .folders-grid { display: grid; grid-template-columns: repeat(var(--folder-cols, 5), 1fr); gap: 12px; flex-grow: 1; min-width: 0; }
 
-  .folder-card { background: #fff; border-radius: 16px; padding: 14px; cursor: pointer; border: 2px solid transparent; transition: all 0.2s; box-shadow: 0 2px 6px rgba(0,0,0,0.02); display: flex; flex-direction: column; justify-content: space-between; min-height: 110px; position: relative; }
-  .folder-card.active { border-color: var(--primary); box-shadow: 0 4px 12px rgba(37, 99, 235, 0.1); }
+  .folder-card { background: var(--paper-raised); border-radius: 0; padding: 12px; cursor: pointer; border: 2px solid var(--line); transition: transform 0.1s; box-shadow: 3px 3px 0 var(--ink); display: flex; flex-direction: column; justify-content: space-between; min-height: 100px; position: relative; }
+  .folder-card:hover { transform: translate(-2px,-2px); box-shadow: 5px 5px 0 var(--ink); }
+  .folder-card.active { background: var(--ink); color: var(--paper-raised); box-shadow: 3px 3px 0 var(--line-soft); }
+  .folder-card.active .folder-count { color: var(--paper); opacity: .7; }
   .folder-top { display: flex; justify-content: space-between; align-items: center; }
-  .folder-icon { width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
-  .btn-delete-folder { background: none; border: none; color: #94a3b8; font-size: 16px; font-weight: bold; cursor: pointer; padding: 6px; border-radius: 6px; line-height: 1; transition: all 0.2s; min-width: 32px; min-height: 32px; }
-  .btn-delete-folder:hover { color: var(--danger); background: #fee2e2; }
-  .folder-name { font-weight: 700; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .folder-count { font-size: 11px; color: var(--text-muted); }
-  .folder-add-btn { border: 2px dashed #cbd5e1; background: transparent; align-items: center; justify-content: center; gap: 4px; }
+  .folder-icon { width: 28px; height: 28px; border: 2px solid var(--ink); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; flex-shrink: 0; }
+  .btn-delete-folder { background: none; border: none; color: var(--ink-soft); font-size: 14px; font-weight: bold; cursor: pointer; padding: 5px; border-radius: 0; line-height: 1; transition: all 0.15s; min-width: 28px; min-height: 28px; }
+  .btn-delete-folder:hover { color: var(--paper-raised); background: var(--danger); }
+  .folder-name { font-weight: 700; font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .folder-count { font-size: 10.5px; color: var(--ink-soft); font-weight: 600; }
+  .folder-add-btn { border: 2px dashed var(--line); background: transparent; align-items: center; justify-content: center; gap: 4px; box-shadow: none; }
+  .folder-add-btn:hover { transform: none; box-shadow: none; background: var(--paper); }
 
   /* ---------------- Sub Bab ---------------- */
-  .subbab-section { background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 16px 18px; margin-bottom: 22px; }
+  .subbab-section { background: var(--paper-raised); border: 2px solid var(--line); border-radius: 0; padding: 16px 18px; margin-bottom: 20px; }
   .subbab-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; gap: 12px; flex-wrap: wrap; }
-  .subbab-header h3 { font-size: 14px; font-weight: 700; color: #334155; }
-  .btn-folder-download { font-size: 12px; font-weight: 700; color: var(--primary); background: #eff6ff; border: 1px solid #bfdbfe; padding: 9px 14px; border-radius: 8px; cursor: pointer; white-space: nowrap; min-height: 40px; }
-  .btn-folder-download:hover { background: #dbeafe; }
+  .subbab-header h3 { font-size: 13px; font-weight: 700; color: var(--ink); }
+  .btn-folder-download { font-size: 11.5px; font-weight: 700; color: var(--ink); background: var(--paper); border: 2px solid var(--line); padding: 8px 13px; border-radius: 0; cursor: pointer; white-space: nowrap; min-height: 38px; }
+  .btn-folder-download:hover { background: var(--ink); color: var(--paper-raised); }
   .subbab-pills { display: flex; flex-wrap: wrap; gap: 8px; }
-  .subbab-pill { display: flex; align-items: center; gap: 6px; background: var(--bg-app); border: 1px solid var(--border); border-radius: 20px; padding: 8px 8px 8px 14px; font-size: 12.5px; font-weight: 600; color: #475569; cursor: pointer; transition: all .15s; min-height: 40px; }
-  .subbab-pill:hover { border-color: #cbd5e1; }
-  .subbab-pill.active { border-color: var(--primary); background: #eff6ff; color: var(--primary); }
-  .subbab-pill .pill-count { color: #94a3b8; font-weight: 500; }
-  .subbab-pill .pill-icon-btn { background: none; border: none; cursor: pointer; font-size: 13px; padding: 6px 7px; border-radius: 6px; line-height: 1; color: #94a3b8; min-width: 30px; min-height: 30px; }
-  .subbab-pill .pill-icon-btn:hover { background: #e2e8f0; color: #1e293b; }
-  .subbab-pill .pill-icon-btn.danger:hover { color: var(--danger); background: #fee2e2; }
-  .subbab-pill.add-pill { border-style: dashed; color: #64748b; padding: 8px 16px; }
+  .subbab-pill { display: flex; align-items: center; gap: 6px; background: var(--paper); border: 2px solid var(--line); border-radius: 0; padding: 7px 7px 7px 13px; font-size: 12px; font-weight: 700; color: var(--ink); cursor: pointer; transition: all .15s; min-height: 38px; }
+  .subbab-pill.active { background: var(--ink); color: var(--paper-raised); }
+  .subbab-pill .pill-count { color: var(--ink-soft); font-weight: 600; }
+  .subbab-pill.active .pill-count { color: var(--paper); opacity: .75; }
+  .subbab-pill .pill-icon-btn { background: none; border: none; cursor: pointer; font-size: 12px; padding: 5px 6px; border-radius: 0; line-height: 1; color: inherit; opacity: .6; min-width: 28px; min-height: 28px; }
+  .subbab-pill .pill-icon-btn:hover { opacity: 1; }
+  .subbab-pill .pill-icon-btn.danger:hover { color: var(--danger); }
+  .subbab-pill.add-pill { border-style: dashed; color: var(--ink-soft); padding: 7px 15px; }
 
-  /* New note trigger - just a button, no dummy input */
-  .new-note-trigger { margin-bottom: 22px; }
-  .btn-submit { background: var(--text-main); color: #fff; border: none; padding: 13px 22px; border-radius: 12px; font-weight: 700; cursor: pointer; font-size: 14px; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 10px rgba(20,32,58,0.12); }
-  .btn-submit:hover { background: #1e293b; }
+  .new-note-trigger { margin-bottom: 20px; }
+  .btn-submit { background: var(--ink); color: var(--paper-raised); border: 2px solid var(--line); padding: 12px 20px; border-radius: 0; font-weight: 700; cursor: pointer; font-size: 13px; display: inline-flex; align-items: center; gap: 8px; box-shadow: 3px 3px 0 var(--line-soft); }
+  .btn-submit:hover { transform: translate(-2px,-2px); box-shadow: 5px 5px 0 var(--line-soft); }
 
   .fab { display: none; }
 
-  /* ---------------- Note cards (colorful, modern) ---------------- */
-  .notes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 20px; padding: 6px 4px 20px; }
+  /* ---------------- Note cards, styled like a message thread ---------------- */
+  .notes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 18px; padding: 4px 2px 20px; }
 
-  .note-card { background: #fff; border-radius: 18px; overflow: hidden; border: 1px solid var(--border); box-shadow: 0 1px 2px rgba(15,23,42,0.03), 0 6px 16px rgba(15,23,42,0.05); cursor: pointer; transition: transform .15s ease, box-shadow .15s ease; display: flex; flex-direction: column; }
-  .note-card:hover { transform: translateY(-3px); box-shadow: 0 4px 8px rgba(15,23,42,0.05), 0 14px 26px rgba(15,23,42,0.09); }
-  .note-card:active { transform: translateY(-1px); }
+  .note-card { background: var(--paper-raised); border-radius: 0; overflow: hidden; border: 2px solid var(--line); box-shadow: 4px 4px 0 var(--line-soft); cursor: pointer; transition: transform .12s ease, box-shadow .12s ease; display: flex; flex-direction: column; }
+  .note-card:hover { transform: translate(-2px,-2px); box-shadow: 6px 6px 0 var(--line-soft); }
+  .note-card:active { transform: translate(0,0); box-shadow: 2px 2px 0 var(--line-soft); }
 
-  .note-card-topbar { display: flex; align-items: center; gap: 10px; padding: 14px 14px; }
-  .note-card-icon { width: 30px; height: 30px; border-radius: 9px; background: rgba(255,255,255,0.55); display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
-  .note-card-folder-name { font-size: 12.5px; font-weight: 700; flex-grow: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .note-card-topbar { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-bottom: 2px solid var(--line); }
+  .note-card-icon { width: 28px; height: 28px; border: 2px solid var(--ink); background: var(--paper-raised); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; flex-shrink: 0; }
+  .note-card-folder-name { font-size: 11.5px; font-weight: 700; flex-grow: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: 0.02em; }
 
-  .note-menu-btn { background: rgba(255,255,255,0.5); border: none; width: 30px; height: 30px; border-radius: 9px; font-size: 15px; font-weight: 700; cursor: pointer; flex-shrink: 0; color: inherit; line-height: 1; }
-  .note-menu-btn:hover { background: rgba(255,255,255,0.85); }
+  .note-menu-btn { background: none; border: 2px solid transparent; width: 28px; height: 28px; border-radius: 0; font-size: 15px; font-weight: 700; cursor: pointer; flex-shrink: 0; color: inherit; line-height: 1; }
+  .note-menu-btn:hover { border-color: var(--ink); }
 
   .note-card-body { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 8px; flex-grow: 1; }
-  .note-title { font-weight: 800; font-size: 15.5px; color: #111827; line-height: 1.35; }
-  .note-preview { font-size: 13px; color: #5b6472; line-height: 21px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-  .note-preview:empty:before, .note-preview.is-empty:before { content: 'Belum ada jawaban. Ketuk untuk menulis.'; color: #a3acba; font-style: italic; }
-  .note-card-foot { display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 10px; font-size: 11px; color: #a3acba; }
+  .note-title { font-weight: 700; font-size: 15px; color: var(--ink); line-height: 1.35; font-family: 'Space Grotesk', sans-serif; }
+  .note-preview { font-family: 'Source Serif 4', serif; font-size: 13.5px; color: var(--ink-soft); line-height: 21px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  .note-preview:empty:before, .note-preview.is-empty:before { content: 'Belum ada jawaban. Ketuk untuk menulis.'; color: var(--ink-soft); font-style: italic; }
+  .note-card-foot { display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 10px; font-size: 10.5px; color: var(--ink-soft); font-weight: 600; border-top: 1px solid var(--line-soft); }
 
-  /* ---------------- Note action menu (shared popover) ---------------- */
-  .note-action-menu { position: fixed; background: #fff; border: 1px solid var(--border); border-radius: 14px; min-width: 168px; box-shadow: 0 10px 25px rgba(0,0,0,0.12); display: none; flex-direction: column; padding: 6px; z-index: 400; }
+  /* ---------------- Note action menu ---------------- */
+  .note-action-menu { position: fixed; background: var(--paper-raised); border: 2px solid var(--line); border-radius: 0; min-width: 172px; box-shadow: 4px 4px 0 var(--ink); display: none; flex-direction: column; padding: 6px; z-index: 400; }
   .note-action-menu.show { display: flex; }
-  .note-action-menu button { padding: 11px 13px; font-size: 13px; font-weight: 600; color: var(--text-main); border-radius: 9px; cursor: pointer; display: flex; align-items: center; gap: 9px; border: none; background: none; width: 100%; text-align: left; }
-  .note-action-menu button:hover { background: #f1f5f9; }
+  .note-action-menu button { padding: 10px 12px; font-size: 12.5px; font-weight: 700; color: var(--ink); border-radius: 0; cursor: pointer; display: flex; align-items: center; gap: 9px; border: none; background: none; width: 100%; text-align: left; }
+  .note-action-menu button:hover { background: var(--ink); color: var(--paper-raised); }
   .note-action-menu button.danger { color: var(--danger); }
-  .note-action-menu button.danger:hover { background: #fee2e2; }
+  .note-action-menu button.danger:hover { background: var(--danger); color: var(--paper-raised); }
 
-  /* ---------------- Read modal (colored header page) ---------------- */
-  .read-page { background: #fff; display: flex; flex-direction: column; max-height: 74vh; overflow: hidden; }
-  .read-header { padding: 18px 22px; display: flex; align-items: center; gap: 12px; }
-  .read-icon { width: 40px; height: 40px; border-radius: 12px; background: rgba(255,255,255,0.55); display: flex; align-items: center; justify-content: center; font-size: 19px; flex-shrink: 0; }
-  .read-folder-name { font-size: 12.5px; font-weight: 700; }
-  .read-date { font-size: 11px; opacity: 0.85; margin-top: 2px; }
+  /* ---------------- Read modal ---------------- */
+  .read-page { background: var(--paper-raised); display: flex; flex-direction: column; max-height: 74vh; overflow: hidden; }
+  .read-header { padding: 16px 22px; display: flex; align-items: center; gap: 12px; border-bottom: 2px solid var(--line); }
+  .read-icon { width: 38px; height: 38px; border: 2px solid var(--ink); background: var(--paper-raised); display: flex; align-items: center; justify-content: center; font-size: 17px; font-weight: 700; flex-shrink: 0; }
+  .read-folder-name { font-size: 11.5px; font-weight: 700; letter-spacing: 0.03em; }
+  .read-date { font-size: 10.5px; opacity: 0.75; margin-top: 2px; font-weight: 600; }
   .read-body { padding: 20px 22px; overflow-y: auto; }
-  .read-q { font-weight: 800; font-size: 19px; color: #111827; line-height: 1.4; margin-bottom: 12px; }
-  .read-answer { font-size: 14.5px; color: #374151; line-height: 26px; min-height: 60px; }
-  .read-answer:empty:before { content: 'Belum ada jawaban.'; color: var(--text-muted); font-style: italic; }
-  .read-meta { font-size: 11px; color: var(--text-muted); margin-top: 16px; padding-top: 10px; border-top: 1px solid var(--border); }
+  .read-q { font-weight: 700; font-size: 19px; color: var(--ink); line-height: 1.4; margin-bottom: 14px; font-family: 'Space Grotesk', sans-serif; }
+  .read-answer { font-family: 'Source Serif 4', serif; font-size: 15px; color: var(--ink); line-height: 27px; min-height: 60px; }
+  .read-answer:empty:before { content: 'Belum ada jawaban.'; color: var(--ink-soft); font-style: italic; }
+  .read-meta { font-size: 10.5px; color: var(--ink-soft); font-weight: 600; margin-top: 16px; padding-top: 10px; border-top: 1px solid var(--line-soft); }
 
   /* ---------------- Modal shell ---------------- */
-  .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.5); display: flex; align-items: center; justify-content: center; padding: 16px; opacity: 0; pointer-events: none; transition: opacity 0.2s ease; z-index: 999; }
+  .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(33,29,23,0.5); display: flex; align-items: center; justify-content: center; padding: 16px; opacity: 0; pointer-events: none; transition: opacity 0.2s ease; z-index: 999; }
   .modal-overlay.active { opacity: 1; pointer-events: auto; }
-  .modal { background: #fff; border-radius: 16px; width: 100%; max-width: 480px; padding: 20px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 20px 40px rgba(0,0,0,0.15); max-height: 90vh; overflow-y: auto; }
+  .modal { background: var(--paper-raised); border-radius: 0; width: 100%; max-width: 480px; padding: 20px; display: flex; flex-direction: column; gap: 12px; box-shadow: 8px 8px 0 var(--ink); max-height: 90vh; overflow-y: auto; border: 2px solid var(--line); }
   .modal.small-modal { max-width: 360px; }
   .modal.read-shell { padding: 0; max-width: 480px; }
-  .modal-header { display: flex; justify-content: space-between; align-items: center; font-weight: 700; font-size: 15px; }
-  .modal-header span.close-x { cursor: pointer; font-size: 20px; color: var(--text-muted); padding: 6px; min-width: 32px; min-height: 32px; display: flex; align-items: center; justify-content: center; }
+  .modal-header { display: flex; justify-content: space-between; align-items: center; font-weight: 700; font-size: 14.5px; padding-bottom: 10px; border-bottom: 2px solid var(--line); }
+  .modal-header span.close-x { cursor: pointer; font-size: 20px; color: var(--ink-soft); padding: 4px; min-width: 30px; min-height: 30px; display: flex; align-items: center; justify-content: center; }
+  .modal-header span.close-x:hover { color: var(--ink); }
   .read-close-row { display: flex; justify-content: flex-end; padding: 10px 14px 0; }
-  .read-close-row .close-x { cursor: pointer; font-size: 20px; color: rgba(0,0,0,0.4); }
+  .read-close-row .close-x { cursor: pointer; font-size: 20px; color: var(--ink-soft); }
 
-  .modal input[type="text"], .modal select { width: 100%; background: var(--bg-app); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; font-size: 16px; outline: none; }
+  .modal input[type="text"], .modal select { width: 100%; background: var(--paper); border: 2px solid var(--line); border-radius: 0; padding: 11px 13px; font-size: 16px; font-weight: 600; outline: none; color: var(--ink); }
 
-  .toolbar { display: flex; gap: 4px; background: var(--bg-app); border: 1px solid var(--border); border-bottom: none; border-radius: 8px 8px 0 0; padding: 6px; flex-wrap: wrap; }
-  .toolbar button { background: transparent; border: none; padding: 8px 12px; font-size: 14px; border-radius: 6px; cursor: pointer; color: var(--text-main); min-width: 40px; min-height: 40px; }
-  .toolbar button:hover { background: var(--border); }
-  .editor { background: var(--bg-app); border: 1px solid var(--border); border-radius: 0 0 8px 8px; padding: 12px; min-height: 140px; max-height: 260px; overflow-y: auto; outline: none; font-size: 16px; line-height: 1.5; }
-  .editor[placeholder]:empty:before { content: attr(placeholder); color: var(--text-muted); }
+  .toolbar { display: flex; gap: 2px; background: var(--paper); border: 2px solid var(--line); border-bottom: none; border-radius: 0; padding: 4px; flex-wrap: wrap; }
+  .toolbar button { background: transparent; border: none; padding: 6px 8px; font-size: 12px; border-radius: 0; cursor: pointer; color: var(--ink); min-width: 34px; min-height: 34px; white-space: nowrap; }
+  .toolbar button:hover { background: var(--ink); color: var(--paper-raised); }
+  .editor { background: var(--paper); border: 2px solid var(--line); border-radius: 0; padding: 12px; min-height: 140px; max-height: 260px; overflow-y: auto; outline: none; font-size: 15px; font-family: 'Source Serif 4', serif; line-height: 1.6; }
+  .editor[placeholder]:empty:before { content: attr(placeholder); color: var(--ink-soft); font-style: italic; }
+  .editor ul, .editor ol, .read-answer ul, .read-answer ol, .note-preview ul, .note-preview ol { padding-left: 24px; margin: 8px 0; }
+  .editor li, .read-answer li, .note-preview li { margin-bottom: 4px; }
 
   .modal-actions { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
-  .btn-cancel { background: none; border: 1px solid var(--border); border-radius: 10px; padding: 12px 18px; font-weight: 600; font-size: 13px; cursor: pointer; color: var(--text-muted); min-height: 44px; }
-  .btn-save { background: var(--text-main); color: #fff; border: none; border-radius: 10px; padding: 12px 18px; font-weight: 600; font-size: 13px; cursor: pointer; min-height: 44px; }
+  .btn-cancel { background: var(--paper-raised); border: 2px solid var(--line); border-radius: 0; padding: 11px 17px; font-weight: 700; font-size: 12.5px; cursor: pointer; color: var(--ink); min-height: 42px; }
+  .btn-cancel:hover { background: var(--paper); }
+  .btn-save { background: var(--ink); color: var(--paper-raised); border: 2px solid var(--line); border-radius: 0; padding: 11px 17px; font-weight: 700; font-size: 12.5px; cursor: pointer; min-height: 42px; }
+  .btn-save:hover { box-shadow: 3px 3px 0 var(--line-soft); }
 
-  .empty-state { color: var(--text-muted); grid-column: 1/-1; text-align: center; padding: 40px 16px; font-size: 14px; }
+  .empty-state { color: var(--ink-soft); grid-column: 1/-1; text-align: center; padding: 44px 16px; font-size: 13.5px; font-weight: 600; border: 2px dashed var(--line-soft); }
 
-  /* ===================== Narrow desktop windows (still desktop UI) ===================== */
-  @media (max-width: 1000px) {
-    header { padding: 10px 20px; }
-    .content-area { padding: 18px 20px 28px; }
+  /* On desktop the sidebar nav is the folder switcher, so the in-content
+     folder cards would just duplicate it. Keep the cards for mobile only. */
+  @media (min-width: 481px) {
+    .folder-pagination-wrapper { display: none; }
   }
 
-  /* ===================== MOBILE (real phone widths) ===================== */
+  /* ===================== Narrow desktop windows ===================== */
+  @media (max-width: 1000px) {
+    header { padding: 10px 18px; }
+    .content-area { padding: 18px 18px 28px; }
+  }
+
+  /* ===================== MOBILE ===================== */
   @media (max-width: 480px) {
     body { flex-direction: column; }
     aside { display: none; }
 
-    .mobile-topbar { display: flex; align-items: center; justify-content: space-between; padding: calc(10px + var(--safe-t)) 16px 10px; background: #fff; border-bottom: 1px solid var(--border); flex-shrink: 0; }
-    .mobile-topbar .brand { font-size: 17px; }
-    .mobile-topbar .brand-icon { width: 10px; height: 10px; box-shadow: 11px 0 0 #ef4444, 22px 0 0 #eab308; }
+    .mobile-topbar { display: flex; align-items: center; justify-content: space-between; padding: calc(10px + var(--safe-t)) 16px 10px; background: var(--paper-raised); border-bottom: 2px solid var(--line); flex-shrink: 0; }
+    .mobile-topbar .win-dots { padding: 0; }
+    .mobile-topbar .brand-wrap { display: flex; align-items: center; gap: 10px; }
+    .mobile-topbar .brand { font-size: 16px; padding: 0; border: none; }
 
     header { padding: 8px 14px; gap: 8px; }
     .search-box { font-size: 16px; min-width: 0; }
     .profile-btn .profile-label { display: none; }
     .content-area { padding: 14px 14px calc(90px + var(--safe-b)); }
 
-    /* Folders: plain swipe/scroll is fine on a phone */
     .folder-pagination-wrapper { gap: 0; }
     .btn-nav-arrow { display: none; }
     .folders-grid { display: flex; grid-template-columns: none; overflow-x: auto; scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch; padding-bottom: 4px; gap: 10px; }
-    .folder-card { flex: 0 0 38%; scroll-snap-align: start; min-height: 96px; }
+    .folder-card { flex: 0 0 40%; scroll-snap-align: start; min-height: 92px; }
 
     .new-note-trigger { display: none; }
 
-    .fab { display: flex; align-items: center; justify-content: center; gap: 8px; position: fixed; right: 18px; bottom: calc(20px + var(--safe-b)); z-index: 120; background: var(--primary); color: #fff; border: none; border-radius: 30px; padding: 16px 20px; font-weight: 700; font-size: 14px; box-shadow: 0 8px 20px rgba(37,99,235,0.35); cursor: pointer; }
-    .fab:active { background: var(--primary-dark); }
+    .fab { display: flex; align-items: center; justify-content: center; gap: 8px; position: fixed; right: 18px; bottom: calc(20px + var(--safe-b)); z-index: 120; background: var(--ink); color: var(--paper-raised); border: 2px solid var(--line); border-radius: 0; padding: 15px 19px; font-weight: 700; font-size: 13.5px; box-shadow: 4px 4px 0 var(--line-soft); cursor: pointer; }
+    .fab:active { transform: translate(2px,2px); box-shadow: 1px 1px 0 var(--line-soft); }
 
-    /* Notes: compact text-first list, like a voice-memo app */
     .notes-grid { grid-template-columns: 1fr; gap: 10px; }
-    .note-card { flex-direction: row; align-items: center; gap: 12px; border-radius: 14px; padding: 10px 10px; }
+    .note-card { flex-direction: row; align-items: center; gap: 12px; border-radius: 0; padding: 10px 10px; }
     .note-card:hover { transform: none; }
     .note-card .card-desktop { display: none; }
     .note-card .card-mobile { display: flex; align-items: center; gap: 12px; width: 100%; }
-    .mobile-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+    .mobile-icon { width: 42px; height: 42px; border: 2px solid var(--ink); display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700; flex-shrink: 0; }
     .mobile-text { flex: 1; min-width: 0; }
-    .mobile-title { font-weight: 700; font-size: 14px; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .mobile-meta { font-size: 12px; color: var(--text-muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .mobile-title { font-weight: 700; font-size: 13.5px; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .mobile-meta { font-size: 11.5px; color: var(--ink-soft); font-weight: 600; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-    /* Bottom-sheet modals for a native Android feel */
     .modal-overlay { align-items: flex-end; padding: 0; }
-    .modal, .read-shell { max-width: 100%; border-radius: 20px 20px 0 0; max-height: 88vh; padding-bottom: calc(20px + var(--safe-b)); }
+    .modal, .read-shell { max-width: 100%; border-radius: 0; max-height: 88vh; padding-bottom: calc(20px + var(--safe-b)); box-shadow: none; border-top: 2px solid var(--line); border-left: none; border-right: none; border-bottom: none; }
     .modal.small-modal { max-width: 100%; }
-    .modal:not(.read-shell)::before { content: ''; display: block; width: 40px; height: 4px; background: #e2e8f0; border-radius: 4px; margin: -6px auto 4px; }
+    .modal:not(.read-shell)::before { content: ''; display: block; width: 40px; height: 4px; background: var(--line-soft); margin: -6px auto 4px; }
 
-    .dropdown-menu { position: fixed; left: 0; right: 0; bottom: 0; top: auto; width: 100%; border-radius: 20px 20px 0 0; padding: 10px 10px calc(14px + var(--safe-b)); box-shadow: 0 -10px 30px rgba(0,0,0,0.12); }
+    .dropdown-menu { position: fixed; left: 0; right: 0; bottom: 0; top: auto; width: 100%; border-radius: 0; padding: 10px 10px calc(14px + var(--safe-b)); box-shadow: none; border-top: 2px solid var(--line); border-left: none; border-right: none; border-bottom: none; }
     .dropdown-item { font-size: 14px; padding: 14px; }
   }
 
@@ -222,17 +294,25 @@
 <body>
 
 <aside>
-  <div>
-    <div class="brand"><div class="brand-icon"></div> MINI NOTES</div>
-    <ul class="nav-menu"><li class="nav-item active">📝 All Notes</li></ul>
+  <div class="side-scroll">
+    <div class="win-dots"><span></span><span></span><span></span></div>
+    <div class="brand">Mino Notes<small>Personal note archive</small></div>
+    <div class="side-section-head" onclick="toggleSidebarFolders()">
+      <span class="side-caret" id="sidebarCaret">−</span>
+      <span class="side-folder-icon">🗀</span> Folders
+    </div>
+    <ul class="channel-list" id="sidebarFolderList"></ul>
   </div>
-  <div style="font-size: 11px; color: var(--text-muted);" id="storageStatusDesktop">Menyimpan...</div>
+  <div class="sidebar-foot" id="storageStatusDesktop">Menyimpan...</div>
 </aside>
 
 <div id="app">
   <div class="mobile-topbar">
-    <div class="brand"><div class="brand-icon"></div> MINO NOTES</div>
-    <span id="storageStatusMobile" style="font-size:11px;color:var(--text-muted);">⏳</span>
+    <div class="brand-wrap">
+      <div class="win-dots"><span></span><span></span><span></span></div>
+      <div class="brand">Mino Notes</div>
+    </div>
+    <span id="storageStatusMobile" style="font-size:11px;font-weight:700;color:var(--ink-soft);">⏳</span>
   </div>
 
   <header>
@@ -240,20 +320,22 @@
     <div class="profile-area">
       <button class="profile-btn" onclick="toggleProfileMenu(event)">
         <div class="avatar">M</div>
-        <span class="profile-label" style="font-size: 13px; font-weight: 700;">Profile ▾</span>
+        <span class="profile-label">Profile ▾</span>
       </button>
       <div class="dropdown-menu" id="profileDropdown">
-        <button class="dropdown-item" onclick="exportPDF('All Notes','All')">📄 Unduh Semua (PDF)</button>
-        <button class="dropdown-item" onclick="exportPDF(activeFolder,'All')">📑 Unduh Folder Ini (PDF)</button>
+        <button class="dropdown-item" onclick="exportPDF('All Notes','All')">⬇ Unduh Semua (PDF)</button>
+        <button class="dropdown-item" onclick="exportPDF(activeFolder,'All')">⬇ Unduh Folder Ini (PDF)</button>
         <div class="dropdown-divider"></div>
-        <button class="dropdown-item" onclick="exportJSON()">💾 Export JSON</button>
+        <button class="dropdown-item" onclick="exportJSON()">▤ Export JSON</button>
         <label class="dropdown-item" style="cursor: pointer;">
-          📂 Import JSON
+          ▢ Import JSON
           <input type="file" id="importFile" accept=".json" onchange="importJSON(event)" style="display:none;">
         </label>
       </div>
     </div>
   </header>
+
+  <div class="dot-strip"></div>
 
   <div class="sheet-backdrop" id="sheetBackdrop" onclick="closeAllSheets()"></div>
 
@@ -280,10 +362,10 @@
 
 <!-- Shared per-note action menu -->
 <div class="note-action-menu" id="noteActionMenu">
-  <button onclick="noteMenuAction('view')">👁️ Lihat Catatan</button>
-  <button onclick="noteMenuAction('edit')">✏️ Edit</button>
-  <button onclick="noteMenuAction('download')">⬇️ Unduh PDF</button>
-  <button class="danger" onclick="noteMenuAction('delete')">🗑️ Hapus</button>
+  <button onclick="noteMenuAction('view')">👁 Lihat Catatan</button>
+  <button onclick="noteMenuAction('edit')">✎ Edit</button>
+  <button onclick="noteMenuAction('download')">⬇ Unduh PDF</button>
+  <button class="danger" onclick="noteMenuAction('delete')">✖ Hapus</button>
 </div>
 
 <!-- Modal Rich-Text Editor -->
@@ -320,7 +402,7 @@
     <div class="read-page" id="readPageContent"></div>
     <div class="modal-actions" style="padding:14px;">
       <button class="btn-cancel" id="readDeleteBtn">Hapus</button>
-      <button class="btn-cancel" id="readDownloadBtn" style="color:#16a34a; border-color:#bbf7d0;">⬇️ Unduh PDF</button>
+      <button class="btn-cancel" id="readDownloadBtn" style="color:#3f5930; border-color:#3f5930;">⬇ Unduh PDF</button>
       <button class="btn-save" id="readEditBtn">Edit Catatan</button>
     </div>
   </div>
@@ -344,19 +426,20 @@
 <script>
   const DATA_KEY = 'mino_notes_data_v2';
 
-  // Visual theme per folder: pastel background + matching text color + a
-  // sensible default icon. Falls back to a hash-based pick for custom folders.
-  const FOLDER_ICON_MAP = { 'Movie Review': '🎬', 'Class Notes': '📚', 'Book Lists': '📖', 'Tech & Code': '💻', 'General': '🗒️' };
-  const FALLBACK_ICONS = ['📝', '💡', '🎯', '🌟', '📌', '🔖', '🗂️', '✨', '🧠', '🍀'];
+  // Visual theme per folder: muted retro tones + a matching glyph icon.
+  // Falls back to a hash-based pick for custom folders. This does not
+  // affect the stored JSON shape (notes/folders/folderSubbabs) at all.
+  const FOLDER_ICON_MAP = { 'Movie Review': '▶', 'Class Notes': '▦', 'Book Lists': '≡', 'Tech & Code': '</>', 'General': '#' };
+  const FALLBACK_ICONS = ['#', '◆', '★', '●', '▣', '✎', '▢', '✦', '◎', '❀'];
   const THEMES = [
-    { bg: '#ffe4e6', text: '#9f1239' },
-    { bg: '#dbeafe', text: '#1d4ed8' },
-    { bg: '#dcfce7', text: '#15803d' },
-    { bg: '#fef9c3', text: '#92640a' },
-    { bg: '#ede9fe', text: '#6d28d9' },
-    { bg: '#fae8ff', text: '#a21caf' },
-    { bg: '#cffafe', text: '#0e7490' },
-    { bg: '#ffedd5', text: '#c2410c' },
+    { bg: '#e8c4b8', text: '#7a2e1d' },
+    { bg: '#c9d6c3', text: '#3f5930' },
+    { bg: '#e3d5a8', text: '#7a5c17' },
+    { bg: '#c7d1d9', text: '#33465a' },
+    { bg: '#d9c2d9', text: '#5c3566' },
+    { bg: '#f0c9c0', text: '#8a3324' },
+    { bg: '#c3dbd9', text: '#2c5c56' },
+    { bg: '#e8dcc0', text: '#6b5a2e' },
   ];
 
   function hashStr(str) { let h = 0; for (let i = 0; i < str.length; i++) h = str.charCodeAt(i) + ((h << 5) - h); return Math.abs(h); }
@@ -377,6 +460,7 @@
   let inputModalCallback = null;
   let noteMenuTargetId = null;
   let dataLoaded = false;
+  let sidebarFoldersCollapsed = false;
 
   function isMobile() { return window.innerWidth <= 480; }
 
@@ -516,14 +600,16 @@
     visibleFolders.forEach((f) => {
       const count = f === 'All Notes' ? notes.length : notes.filter(n => n.folder === f).length;
       const isDefaultFolder = (f === 'All Notes');
-      const theme = isDefaultFolder ? { bg: '#eff6ff', text: '#2563eb' } : themeFor(f);
-      const icon = isDefaultFolder ? '📂' : iconFor(f);
+      const theme = isDefaultFolder ? { bg: '#efe8d8', text: '#211d17' } : themeFor(f);
+      const icon = isDefaultFolder ? '▤' : iconFor(f);
       const deleteBtnHtml = isDefaultFolder ? '' : `<button class="btn-delete-folder" title="Hapus Folder" onclick="deleteFolder(event, '${jsEscape(f)}')">✖</button>`;
+      const activeClass = activeFolder === f ? 'active' : '';
+      const iconStyle = activeClass ? `border-color: var(--paper-raised); color: var(--paper-raised);` : `background:${theme.bg};color:${theme.text};border-color:${theme.text}`;
 
       folderHTML += `
-        <div class="folder-card ${activeFolder === f ? 'active' : ''}" onclick="selectFolder('${jsEscape(f)}')">
+        <div class="folder-card ${activeClass}" onclick="selectFolder('${jsEscape(f)}')">
           <div class="folder-top">
-            <div class="folder-icon" style="background:${theme.bg};color:${theme.text}">${icon}</div>
+            <div class="folder-icon" style="${iconStyle}">${icon}</div>
             ${deleteBtnHtml}
           </div>
           <div>
@@ -536,7 +622,7 @@
 
     folderHTML += `
       <div class="folder-card folder-add-btn" onclick="addCustomFolder()">
-        <div style="font-size: 20px; font-weight: bold;">+</div>
+        <div style="font-size: 18px; font-weight: bold;">+</div>
         <div class="folder-name">New Folder</div>
       </div>
     `;
@@ -549,6 +635,52 @@
 
   function changeFolderPage(dir) { folderCurrentPage += dir; renderFolders(); }
   function selectFolder(fName) { activeFolder = fName; activeSubbab = 'All'; render(); }
+
+  /* ---------- SIDEBAR FOLDER NAV (desktop) ---------- */
+  function toggleSidebarFolders() {
+    sidebarFoldersCollapsed = !sidebarFoldersCollapsed;
+    document.getElementById('sidebarCaret').innerText = sidebarFoldersCollapsed ? '+' : '−';
+    document.getElementById('sidebarFolderList').classList.toggle('collapsed', sidebarFoldersCollapsed);
+  }
+
+  function renderSidebarFolders() {
+    const list = document.getElementById('sidebarFolderList');
+    let html = '';
+    folders.forEach((f) => {
+      const isDefaultFolder = (f === 'All Notes');
+      const isActive = activeFolder === f;
+      const folderNotes = isDefaultFolder ? notes : notes.filter(n => n.folder === f);
+      const count = folderNotes.length;
+      const hash = isDefaultFolder ? '▤' : '#';
+      const delBtn = isDefaultFolder ? '' : `<button class="channel-del" title="Hapus folder" onclick="event.stopPropagation(); deleteFolder(event, '${jsEscape(f)}')">✖</button>`;
+      html += `
+        <li class="channel-item ${isActive ? 'active' : ''}" onclick="selectFolder('${jsEscape(f)}')">
+          <span class="channel-hash">${hash}</span>
+          <span class="channel-name">${escapeHtml(f)}</span>
+          ${count > 0 ? `<span class="channel-badge">${count}</span>` : ''}
+          ${delBtn}
+        </li>
+      `;
+      // When this folder is the active one, list its notes nested right underneath it.
+      if (isActive) {
+        html += `<ul class="channel-notes">`;
+        if (folderNotes.length === 0) {
+          html += `<li class="channel-note-item empty">Belum ada catatan</li>`;
+        } else {
+          folderNotes.slice(0, 8).forEach(n => {
+            html += `<li class="channel-note-item" title="${escapeHtml(n.question)}" onclick="event.stopPropagation(); openReadModal(${n.id})">${escapeHtml(n.question)}</li>`;
+          });
+          if (folderNotes.length > 8) {
+            html += `<li class="channel-note-item empty">+${folderNotes.length - 8} lainnya</li>`;
+          }
+        }
+        html += `<li class="channel-note-item add" onclick="event.stopPropagation(); openModal()">+ Catatan baru</li>`;
+        html += `</ul>`;
+      }
+    });
+    html += `<li class="channel-add" onclick="addCustomFolder()"><span class="channel-hash">+</span><span class="channel-name">Add folder</span></li>`;
+    list.innerHTML = html;
+  }
 
   function addCustomFolder() {
     openInputModal('Tambah Folder Baru', 'Nama folder / kategori...', (val) => {
@@ -603,7 +735,7 @@
     container.innerHTML = `
       <div class="subbab-header">
         <h3>Sub Bab dalam "${escapeHtml(activeFolder)}"</h3>
-        <button class="btn-folder-download" onclick="exportPDF('${jsEscape(activeFolder)}','All')">📥 Unduh PDF Folder Ini</button>
+        <button class="btn-folder-download" onclick="exportPDF('${jsEscape(activeFolder)}','All')">⬇ Unduh PDF Folder Ini</button>
       </div>
       <div class="subbab-pills">${pillsHTML}</div>
     `;
@@ -719,7 +851,7 @@
     content.innerHTML = `
       <div class="read-close-row"><span class="close-x" onclick="closeReadModal()">&times;</span></div>
       <div class="read-header" style="background:${theme.bg};color:${theme.text}">
-        <div class="read-icon">${icon}</div>
+        <div class="read-icon" style="border-color:${theme.text}">${icon}</div>
         <div>
           <div class="read-folder-name">${escapeHtml(n.folder)}${n.subbab ? ' • ' + escapeHtml(n.subbab) : ''}</div>
           <div class="read-date">${escapeHtml(n.date)}</div>
@@ -776,7 +908,7 @@
     if (search) list = list.filter(n => n.question.toLowerCase().includes(search) || stripHtml(n.answer).toLowerCase().includes(search));
 
     if (!dataLoaded) { grid.innerHTML = '<div class="empty-state">Memuat catatan...</div>'; return; }
-    if (list.length === 0) { grid.innerHTML = '<div class="empty-state">📓 Belum ada catatan di sini.<br>Ketuk "Buat Catatan Baru" untuk mulai menulis.</div>'; return; }
+    if (list.length === 0) { grid.innerHTML = '<div class="empty-state">Belum ada catatan di sini.<br>Ketuk "Buat Catatan Baru" untuk mulai menulis.</div>'; return; }
 
     list.forEach((n) => {
       const theme = themeFor(n.folder);
@@ -790,7 +922,7 @@
       el.innerHTML = `
         <div class="card-desktop">
           <div class="note-card-topbar" style="background:${theme.bg};color:${theme.text}">
-            <div class="note-card-icon">${icon}</div>
+            <div class="note-card-icon" style="border-color:${theme.text}">${icon}</div>
             <div class="note-card-folder-name">${escapeHtml(n.folder)}${n.subbab ? ' • ' + escapeHtml(n.subbab) : ''}</div>
             <button class="note-menu-btn" onclick="openNoteMenu(event, ${n.id})">⋯</button>
           </div>
@@ -801,12 +933,12 @@
           </div>
         </div>
         <div class="card-mobile">
-          <div class="mobile-icon" style="background:${theme.bg};color:${theme.text}">${icon}</div>
+          <div class="mobile-icon" style="background:${theme.bg};color:${theme.text};border-color:${theme.text}">${icon}</div>
           <div class="mobile-text">
             <div class="mobile-title">${escapeHtml(n.question)}</div>
             <div class="mobile-meta">${metaLine}</div>
           </div>
-          <button class="note-menu-btn" onclick="openNoteMenu(event, ${n.id})" style="background:#f1f5f9;">⋯</button>
+          <button class="note-menu-btn" onclick="openNoteMenu(event, ${n.id})">⋯</button>
         </div>
       `;
       grid.appendChild(el);
@@ -814,7 +946,7 @@
   }
 
   function deleteNote(id) { if (confirm('Hapus catatan ini?')) { notes = notes.filter(n => n.id !== id); save(); } }
-  function render() { renderFolders(); renderSubbabSection(); renderNotes(); }
+  function render() { renderFolders(); renderSidebarFolders(); renderSubbabSection(); renderNotes(); }
 
   function escapeHtml(str) { return (str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
   function jsEscape(str) { return (str || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'"); }
@@ -832,12 +964,12 @@
     const contentWidth = pageWidth - marginX * 2;
     let y = 22;
 
-    doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.setTextColor(37, 99, 235);
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.setTextColor(33, 29, 23);
     doc.text('MINO NOTES', marginX, y);
     doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(120);
     doc.text(n.date, pageWidth - marginX, y, { align: 'right' });
     doc.setTextColor(0); y += 5;
-    doc.setDrawColor(200); doc.setLineWidth(0.4); doc.line(marginX, y, pageWidth - marginX, y); y += 10;
+    doc.setDrawColor(33, 29, 23); doc.setLineWidth(0.6); doc.line(marginX, y, pageWidth - marginX, y); y += 10;
 
     const breadcrumb = n.subbab ? `${n.folder}  /  ${n.subbab}` : n.folder;
     doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(130);
@@ -847,7 +979,7 @@
     const qLines = doc.splitTextToSize(n.question, contentWidth);
     doc.text(qLines, marginX, y); y += qLines.length * 7.5 + 4;
 
-    doc.setDrawColor(225); doc.setLineWidth(0.3); doc.line(marginX, y, pageWidth - marginX, y); y += 10;
+    doc.setDrawColor(200); doc.setLineWidth(0.3); doc.line(marginX, y, pageWidth - marginX, y); y += 10;
 
     doc.setFont('helvetica', 'normal'); doc.setFontSize(11.5); doc.setTextColor(30);
     const answerText = stripHtml(n.answer) || '(Belum ada jawaban)';
