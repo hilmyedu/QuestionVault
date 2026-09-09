@@ -2,1089 +2,1318 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
-<title>Mino Notes</title>
-
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Simpul — Basis Pengetahuan Pribadi</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.2/marked.min.js"></script>
 <style>
-  :root {
-    --paper: #efe8d8;
-    --paper-raised: #f8f4ea;
-    --ink: #211d17;
-    --ink-soft: #6b6455;
-    --line: #211d17;
-    --line-soft: #c9c0a9;
-    --danger: #8a3324;
-    --safe-b: env(safe-area-inset-bottom, 0px);
-    --safe-t: env(safe-area-inset-top, 0px);
+  :root{
+    --ink:#16202B;
+    --ink-soft:#1E2B3A;
+    --ink-line:#2C3B4C;
+    --paper:#F5EFE1;
+    --paper-dim:#ECE3CC;
+    --surface:#FBF8EF;
+    --line:#D9CDAE;
+    --text:#2A2420;
+    --text-dim:#786C58;
+    --mustard:#B9862A;
+    --mustard-soft:#E7D5A6;
+    --teal:#3F7268;
+    --teal-soft:#CFE0DA;
+    --danger:#A6503F;
+    --danger-soft:#EFD9D3;
+    --font-serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+    --font-mono:ui-monospace,"SF Mono","Cascadia Mono","Liberation Mono",Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;height:100%;}
+  body{
+    font-family:var(--font-serif);
+    color:var(--text);
+    background:var(--paper);
+    font-size:15px;
+    line-height:1.55;
+    transition:background-color .2s ease,color .2s ease;
+  }
+  button{font-family:var(--font-mono);cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
+  input,textarea,select{font-family:inherit;color:inherit;}
+  ::selection{background:var(--mustard-soft);}
+
+  /* ---------- Shell ---------- */
+  .shell{display:flex;flex-direction:column;height:100vh;height:100dvh;}
+  .topbar{
+    display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+    padding:10px 16px;background:var(--ink);color:var(--paper);
+    border-bottom:1px solid var(--ink-line);flex-shrink:0;
+  }
+  .brand{
+    font-family:var(--font-mono);font-size:13px;letter-spacing:.03em;
+    color:var(--mustard-soft);white-space:nowrap;
+  }
+  .brand b{color:var(--paper);font-weight:600;}
+  .search-wrap{flex:1;max-width:460px;position:relative;}
+  .search-wrap input{
+    width:100%;padding:7px 10px 7px 30px;border-radius:3px;border:1px solid var(--ink-line);
+    background:var(--ink-soft);color:var(--paper);font-size:13.5px;font-family:var(--font-mono);
+  }
+  .search-wrap input::placeholder{color:#7C8B9B;}
+  .search-wrap input:focus{outline:1px solid var(--mustard);}
+  .search-wrap .ico{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:#7C8B9B;font-size:13px;}
+  .top-actions{display:flex;gap:8px;margin-left:auto;flex-shrink:0;}
+  .btn{
+    background:transparent;border:1px solid var(--ink-line);color:var(--paper);
+    padding:6px 11px;border-radius:3px;font-size:12.5px;white-space:nowrap;
+  }
+  .btn:hover{border-color:var(--mustard);color:var(--mustard-soft);}
+  .btn.primary{background:var(--mustard);border-color:var(--mustard);color:#221A0B;font-weight:600;}
+  .btn.primary:hover{background:#CE9A3C;color:#221A0B;}
+  .btn.icon-btn{padding:6px 10px;font-size:14px;line-height:1;}
+  .btn:focus-visible,input:focus-visible,textarea:focus-visible,a:focus-visible,select:focus-visible{outline:2px solid var(--teal);outline-offset:1px;}
+
+  .main{display:flex;flex:1;min-height:0;}
+
+  /* ---------- Sidebar ---------- */
+  .sidebar{
+    width:250px;flex-shrink:0;background:var(--ink);color:var(--paper-dim);
+    border-right:1px solid var(--ink-line);overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px 0 20px;
+    transition:background-color .2s ease;
+  }
+  .side-section{padding:0 14px 16px;}
+  .side-label{
+    font-family:var(--font-mono);font-size:10.5px;color:#7C8B9B;
+    margin:0 0 6px 2px;letter-spacing:.02em;
+  }
+  .side-item{
+    display:flex;align-items:center;gap:6px;padding:7px 6px;border-radius:3px;
+    font-size:13.5px;cursor:pointer;color:var(--paper-dim);white-space:nowrap;touch-action:manipulation;
+  }
+  .side-item:hover{background:var(--ink-soft);}
+  .side-item.active{background:var(--ink-soft);color:var(--mustard-soft);}
+  .side-item .count{margin-left:auto;font-family:var(--font-mono);font-size:11px;color:#6E7C8B;}
+  .tree{font-family:var(--font-mono);font-size:12.8px;}
+  .tree-node{white-space:nowrap;}
+  .tree-row{display:flex;align-items:center;gap:3px;padding:5px 4px;border-radius:3px;}
+  .tree-row:hover{background:var(--ink-soft);}
+  .tree-row.active .tree-label{color:var(--mustard-soft);}
+  .tree-branch{color:#57677A;flex-shrink:0;}
+  .tree-chevron{
+    background:none;border:none;color:#7C8B9B;font-size:9px;padding:6px 8px;margin:-4px -4px;
+    display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;
+    transform:rotate(0deg);transition:transform .15s ease;border-radius:2px;touch-action:manipulation;
+  }
+  .tree-chevron:hover{color:var(--mustard-soft);}
+  .tree-chevron.open{transform:rotate(90deg);}
+  .tree-label{cursor:pointer;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;padding:4px 0;touch-action:manipulation;}
+  .tree-children{margin-left:2px;}
+  .tree-add-row{cursor:pointer;touch-action:manipulation;}
+  .tree-add-label{color:#5C6B7B;font-size:11.5px;}
+  .tree-add-row:hover .tree-add-label{color:var(--mustard-soft);}
+  .tag-cloud{display:flex;flex-wrap:wrap;gap:6px;}
+  .tag-pill{
+    font-family:var(--font-mono);font-size:11px;padding:3px 8px;border-radius:10px;
+    border:1px solid var(--ink-line);color:var(--paper-dim);cursor:pointer;touch-action:manipulation;
+  }
+  .tag-pill:hover,.tag-pill.active{border-color:var(--mustard);color:var(--mustard-soft);}
+  .side-add{
+    font-family:var(--font-mono);font-size:11.5px;color:#7C8B9B;background:none;border:none;
+    padding:6px 6px;text-align:left;width:100%;cursor:pointer;touch-action:manipulation;
+  }
+  .side-add:hover{color:var(--mustard-soft);}
+
+  /* ---------- Content list ---------- */
+  .content{flex:1;display:flex;min-width:0;}
+  .list-pane{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;min-width:0;border-right:1px solid var(--line);}
+  .list-header{
+    padding:16px 22px 10px;display:flex;align-items:baseline;justify-content:space-between;gap:10px;
+  }
+  .list-header h1{font-size:19px;margin:0;font-weight:600;}
+  .list-header .sub{font-family:var(--font-mono);font-size:11.5px;color:var(--text-dim);}
+  .note-row{
+    display:flex;gap:14px;align-items:flex-start;padding:13px 22px;border-top:1px solid var(--line);
+    cursor:pointer;touch-action:manipulation;
+  }
+  .note-row:hover{background:var(--paper-dim);}
+  .note-row .star{font-size:14px;color:var(--line);flex-shrink:0;margin-top:2px;background:none;border:none;padding:4px;touch-action:manipulation;}
+  .note-row .star.on{color:var(--mustard);}
+  .note-main{flex:1;min-width:0;}
+  .note-title-row{display:flex;align-items:center;gap:8px;}
+  .note-title{font-weight:600;font-size:15px;}
+  .note-path{font-family:var(--font-mono);font-size:10.5px;color:var(--text-dim);margin-top:2px;}
+  .note-snip{font-size:13px;color:var(--text-dim);margin-top:4px;
+    display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;}
+  .note-tags{margin-top:6px;display:flex;gap:6px;flex-wrap:wrap;}
+  .tag-chip{font-family:var(--font-mono);font-size:10.5px;color:var(--teal);background:var(--teal-soft);
+    padding:1px 6px;border-radius:8px;}
+  .note-date{font-family:var(--font-mono);font-size:10.5px;color:var(--text-dim);flex-shrink:0;margin-top:3px;}
+  .empty-state{padding:60px 30px;text-align:center;color:var(--text-dim);}
+  .empty-state .glyph{font-size:28px;margin-bottom:10px;}
+
+  /* ---------- Editor ---------- */
+  .editor-pane{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;min-width:0;display:flex;flex-direction:column;animation:fadeIn .18s ease;}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:none;}}
+  .editor-toolbar{
+    display:flex;align-items:center;gap:6px;padding:9px 20px;border-bottom:1px solid var(--line);
+    flex-shrink:0;flex-wrap:wrap;
+  }
+  .tb-btn{
+    background:none;border:1px solid var(--line);border-radius:3px;padding:4px 9px;font-size:12.5px;
+    color:var(--text);touch-action:manipulation;
+  }
+  .tb-btn:hover{border-color:var(--teal);color:var(--teal);}
+  .tb-sep{width:1px;height:18px;background:var(--line);margin:0 4px;}
+  .tb-spacer{flex:1;}
+  .tb-mode{display:flex;border:1px solid var(--line);border-radius:3px;overflow:hidden;}
+  .tb-mode button{border:none;background:none;padding:4px 10px;font-size:11.5px;color:var(--text-dim);touch-action:manipulation;}
+  .tb-mode button.active{background:var(--ink);color:var(--paper);}
+  .mobile-only{display:none;}
+  .editor-meta{padding:16px 20px 0;}
+  .title-input{
+    width:100%;font-family:var(--font-serif);font-size:26px;font-weight:600;border:none;background:none;
+    padding:2px 0;color:var(--text);
+  }
+  .title-input:focus{outline:none;}
+  .meta-row{display:flex;gap:14px;align-items:center;margin-top:8px;flex-wrap:wrap;}
+  .meta-field{display:flex;align-items:center;gap:6px;font-family:var(--font-mono);font-size:11.5px;color:var(--text-dim);}
+  .meta-field select,.meta-field input{
+    font-family:var(--font-mono);font-size:11.5px;border:1px solid var(--line);border-radius:3px;
+    padding:3px 6px;background:var(--surface);color:var(--text);
+  }
+  .tags-input{min-width:200px;}
+  .meta-toggle{
+    border:1px solid var(--line);border-radius:3px;padding:3px 8px;background:var(--surface);
+    font-family:var(--font-mono);font-size:11.5px;color:var(--text-dim);touch-action:manipulation;
+  }
+  .meta-toggle.on{border-color:var(--mustard);color:var(--mustard);background:var(--mustard-soft);}
+  .meta-toggle.danger.on{border-color:var(--danger);color:var(--danger);background:var(--danger-soft);}
+  .editor-body{flex:1;display:flex;min-height:0;padding:14px 20px 20px;gap:16px;}
+  .editor-body.preview-only .src{display:none;}
+  .editor-body.edit-only .prev{display:none;}
+  .src,.prev{flex:1;min-width:0;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+  textarea.src-area{
+    width:100%;height:100%;resize:none;border:1px solid var(--line);border-radius:3px;
+    padding:14px 16px;font-family:var(--font-mono);font-size:13px;line-height:1.6;background:var(--surface);color:var(--text);
+  }
+  textarea.src-area:focus{outline:none;border-color:var(--teal);}
+  .prev{border:1px solid var(--line);border-radius:3px;padding:14px 20px;background:var(--surface);}
+  .prev h1,.prev h2,.prev h3{font-family:var(--font-serif);}
+  .prev pre{background:var(--ink);color:var(--paper-dim);padding:10px 12px;border-radius:3px;overflow-x:auto;font-size:12.5px;}
+  .prev code{font-family:var(--font-mono);background:var(--paper-dim);padding:1px 4px;border-radius:2px;font-size:12.5px;}
+  .prev pre code{background:none;padding:0;}
+  .prev a{color:var(--teal);}
+  .prev ul.contains-task-list{list-style:none;padding-left:4px;}
+
+  /* ---------- Context panel ---------- */
+  .context-panel{width:270px;flex-shrink:0;border-left:1px solid var(--line);overflow-y:auto;-webkit-overflow-scrolling:touch;padding:18px 16px;background:var(--paper-dim);}
+  .ctx-title{font-family:var(--font-mono);font-size:11px;color:var(--text-dim);margin:0 0 10px;}
+  .ctx-block{margin-bottom:22px;}
+  .link-row{display:flex;align-items:center;gap:6px;padding:6px 2px;font-size:13px;border-bottom:1px solid var(--line);cursor:pointer;touch-action:manipulation;}
+  .link-row:hover{color:var(--teal);}
+  .link-row .arrow{font-family:var(--font-mono);color:var(--text-dim);flex-shrink:0;}
+  .ctx-empty{font-size:12.5px;color:var(--text-dim);font-style:italic;}
+
+  /* ---------- Graph view ---------- */
+  .graph-wrap{flex:1;position:relative;overflow:hidden;background:
+      radial-gradient(circle at 1px 1px, var(--line) 1px, transparent 0) 0 0/22px 22px, var(--paper);}
+  .graph-wrap svg{width:100%;height:100%;touch-action:none;}
+  .g-node circle{fill:var(--surface);stroke:var(--teal);stroke-width:1.6px;cursor:pointer;}
+  .g-node.fav circle{stroke:var(--mustard);}
+  .g-node text{font-family:var(--font-mono);font-size:10.5px;fill:var(--text);pointer-events:none;}
+  .g-edge{stroke:var(--line);stroke-width:1.2px;}
+  .graph-hint{position:absolute;bottom:14px;left:16px;font-family:var(--font-mono);font-size:11px;color:var(--text-dim);}
+
+  /* ---------- Bottom nav (mobile) ---------- */
+  .bottom-nav{display:none;flex-shrink:0;background:var(--ink);border-top:1px solid var(--ink-line);
+    padding-bottom:env(safe-area-inset-bottom);}
+  .bn-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+    background:none;border:none;color:#8A98A8;padding:7px 0 6px;font-family:var(--font-mono);touch-action:manipulation;}
+  .bn-btn .bn-ico{font-size:18px;line-height:1;}
+  .bn-btn .bn-label{font-size:9.5px;letter-spacing:.02em;}
+  .bn-btn.active{color:var(--mustard-soft);}
+  .bn-btn.bn-main{margin-top:-16px;}
+  .bn-btn.bn-main .bn-ico{
+    width:44px;height:44px;border-radius:50%;background:var(--mustard);color:#221A0B;
+    display:flex;align-items:center;justify-content:center;font-size:19px;box-shadow:0 3px 10px rgba(0,0,0,.35);
   }
 
-  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Space Grotesk', sans-serif; -webkit-tap-highlight-color: transparent; }
-  html, body { overscroll-behavior-y: contain; }
-  body { background-color: var(--paper); color: var(--ink); display: flex; height: 100vh; height: 100dvh; overflow: hidden; }
-  button { touch-action: manipulation; font-family: inherit; }
+  /* ---------- Drawer backdrop (mobile sidebar) ---------- */
+  .drawer-backdrop{position:fixed;inset:0;background:rgba(8,10,13,.5);z-index:65;opacity:0;
+    transition:opacity .2s ease;touch-action:manipulation;}
+  .drawer-backdrop.show{opacity:1;}
 
-  /* retro halftone dot strip, used sparingly as a signature texture */
-  .dot-strip {
-    height: 10px; flex-shrink: 0;
-    background-image: radial-gradient(var(--ink) 1px, transparent 1.4px);
-    background-size: 7px 7px;
-    background-position: 0 -1px;
-    opacity: 0.85;
+  /* ---------- Modal / action sheet ---------- */
+  .modal-backdrop{
+    position:fixed;inset:0;background:rgba(10,14,18,.55);z-index:200;
+    display:flex;align-items:center;justify-content:center;padding:16px;
+    opacity:0;transition:opacity .18s ease;
   }
-
-  ::-webkit-scrollbar { width: 12px; height: 12px; }
-  ::-webkit-scrollbar-track { background: var(--paper); }
-  ::-webkit-scrollbar-thumb {
-    background: repeating-linear-gradient(45deg, var(--ink), var(--ink) 3px, var(--paper-raised) 3px, var(--paper-raised) 6px);
-    border: 2px solid var(--paper);
+  .modal-backdrop.show{opacity:1;}
+  .modal-backdrop[hidden]{display:none;}
+  .modal-box{
+    background:var(--paper);color:var(--text);width:min(420px,100%);padding:22px;border-radius:8px;
+    box-shadow:0 14px 44px rgba(0,0,0,.3);border:1px solid var(--line);
+    transform:translateY(6px) scale(.98);transition:transform .18s ease;
   }
-
-  /* ---------------- Sidebar (desktop) ---------------- */
-  aside { width: 250px; background: var(--paper-raised); padding: 0; display: flex; flex-direction: column; justify-content: space-between; border-right: 2px solid var(--line); flex-shrink: 0; }
-  .win-dots { display: flex; gap: 7px; padding: 16px 18px 12px; }
-  .win-dots span { width: 11px; height: 11px; border-radius: 50%; background: var(--ink); display: block; }
-  .win-dots span:nth-child(2) { opacity: .55; }
-  .win-dots span:nth-child(3) { opacity: .25; }
-
-  .brand { font-weight: 700; font-size: 19px; letter-spacing: -0.02em; padding: 0 18px 14px; border-bottom: 2px solid var(--line); }
-  .brand small { display: block; font-size: 10.5px; font-weight: 600; color: var(--ink-soft); letter-spacing: 0.06em; margin-top: 2px; }
-
-  .nav-menu { list-style: none; display: flex; flex-direction: column; padding: 10px 10px; }
-  .nav-item { padding: 10px 10px; font-size: 13.5px; font-weight: 600; color: var(--ink-soft); cursor: pointer; display: flex; align-items: center; gap: 10px; border: 2px solid transparent; }
-  .nav-item.active { background: var(--ink); color: var(--paper-raised); }
-
-  .sidebar-foot { padding: 12px 18px; border-top: 2px solid var(--line); font-size: 10.5px; font-weight: 600; color: var(--ink-soft); letter-spacing: 0.04em; }
-
-  /* ---------------- Sidebar folder list (channel-style nav) ---------------- */
-  .side-scroll { flex-grow: 1; overflow-y: auto; padding-bottom: 10px; }
-  .side-section-head { display: flex; align-items: center; gap: 9px; padding: 14px 18px 10px; font-size: 13.5px; font-weight: 700; color: var(--ink); cursor: pointer; user-select: none; }
-  .side-caret { width: 15px; height: 15px; border: 2px solid var(--ink); display: inline-flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; line-height: 1; flex-shrink: 0; }
-  .side-folder-icon { font-size: 14px; }
-  .channel-list { list-style: none; padding: 0 10px 0 26px; display: flex; flex-direction: column; gap: 1px; position: relative; }
-  .channel-list.collapsed { display: none; }
-  .channel-list::before { content: ''; position: absolute; left: 20px; top: 2px; bottom: 14px; width: 1px; background: var(--line-soft); }
-  .channel-item { position: relative; display: flex; align-items: center; gap: 7px; padding: 7px 10px 7px 12px; font-size: 13.5px; font-weight: 600; color: var(--ink-soft); cursor: pointer; }
-  .channel-item::before { content: ''; position: absolute; left: -6px; top: 50%; width: 8px; height: 1px; background: var(--line-soft); }
-  .channel-item:hover { color: var(--ink); }
-  .channel-item.active { color: var(--paper-raised); font-weight: 700; background: var(--ink); margin-left: -26px; padding-left: 38px; width: calc(100% + 26px); }
-  .channel-item.active::before { display: none; }
-  .channel-hash { flex-shrink: 0; opacity: .75; font-weight: 700; }
-  .channel-name { flex-grow: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .channel-badge { background: var(--ink); color: var(--paper-raised); font-size: 10.5px; font-weight: 700; border-radius: 999px; padding: 1px 7px; flex-shrink: 0; }
-  .channel-item.active .channel-badge { background: var(--paper-raised); color: var(--ink); }
-  .channel-del { display: none; background: none; border: none; color: var(--ink-soft); font-size: 12px; font-weight: 700; cursor: pointer; padding: 3px 4px; flex-shrink: 0; }
-  .channel-item:hover .channel-del { display: block; }
-  .channel-item:hover .channel-badge { display: none; }
-  .channel-item.active .channel-del { color: var(--paper-raised); }
-  .channel-del:hover { color: var(--danger); }
-  .channel-add { display: flex; align-items: center; gap: 7px; padding: 7px 10px 7px 12px; font-size: 13px; font-weight: 600; color: var(--ink-soft); cursor: pointer; position: relative; }
-  .channel-add::before { content: ''; position: absolute; left: -6px; top: 50%; width: 8px; height: 1px; background: var(--line-soft); }
-  .channel-add:hover { color: var(--ink); }
-
-  /* Notes nested under the active folder, tree-style */
-  .channel-notes { list-style: none; margin: 2px 0 6px 20px; padding-left: 12px; border-left: 1px solid var(--line-soft); display: flex; flex-direction: column; gap: 1px; }
-  .channel-note-item { font-size: 12px; font-weight: 600; color: var(--ink-soft); cursor: pointer; padding: 5px 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; position: relative; }
-  .channel-note-item::before { content: '·'; margin-right: 6px; opacity: .6; }
-  .channel-note-item:hover { color: var(--ink); background: var(--paper); }
-  .channel-note-item.add { font-style: italic; opacity: .85; }
-  .channel-note-item.empty { font-style: italic; opacity: .6; cursor: default; }
-  .channel-note-item.empty:hover { background: none; color: var(--ink-soft); }
-
-  .mobile-topbar { display: none; }
-
-  #app { flex-grow: 1; display: flex; flex-direction: column; height: 100vh; height: 100dvh; overflow: hidden; min-width: 0; }
-
-  header { min-height: 62px; background: var(--paper-raised); border-bottom: 2px solid var(--line); display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 28px; flex-shrink: 0; flex-wrap: nowrap; }
-  .search-box { background: var(--paper); padding: 9px 14px; border-radius: 0; border: 2px solid var(--line); flex: 1 1 160px; min-width: 90px; max-width: 280px; font-size: 13.5px; font-weight: 600; outline: none; color: var(--ink); }
-  .search-box::placeholder { color: var(--ink-soft); font-weight: 500; }
-
-  .profile-area { position: relative; }
-  .profile-btn { display: flex; align-items: center; gap: 9px; background: none; border: 2px solid var(--line); cursor: pointer; padding: 6px 12px; border-radius: 0; transition: background 0.15s; min-height: 42px; flex-shrink: 0; }
-  .profile-btn:hover { background: var(--ink); color: var(--paper-raised); }
-  .profile-btn .profile-label { white-space: nowrap; font-size: 12.5px; font-weight: 700; }
-  .avatar { width: 26px; height: 26px; border-radius: 50%; background: var(--ink); color: var(--paper-raised); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; flex-shrink: 0; }
-  .profile-btn:hover .avatar { background: var(--paper-raised); color: var(--ink); }
-
-  .dropdown-menu { position: absolute; right: 0; top: 52px; background: var(--paper-raised); border: 2px solid var(--line); border-radius: 0; width: 240px; box-shadow: 5px 5px 0 var(--ink); display: none; flex-direction: column; padding: 6px; z-index: 200; }
-  .dropdown-menu.show { display: flex; }
-  .dropdown-item { padding: 11px 12px; font-size: 12.5px; font-weight: 700; color: var(--ink); border-radius: 0; cursor: pointer; display: flex; align-items: center; gap: 10px; border: none; background: none; width: 100%; text-align: left; min-height: 42px; }
-  .dropdown-item:hover { background: var(--ink); color: var(--paper-raised); }
-  .dropdown-divider { height: 2px; background: var(--line); margin: 4px 0; }
-
-  .sheet-backdrop { position: fixed; inset: 0; background: rgba(33,29,23,0.45); z-index: 150; opacity: 0; pointer-events: none; transition: opacity .2s ease; }
-  .sheet-backdrop.show { opacity: 1; pointer-events: auto; }
-
-  .content-area { flex-grow: 1; padding: 22px 28px 32px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
-  .section-title { font-size: 13px; font-weight: 700; margin-bottom: 12px; color: var(--ink); text-transform: none; }
-
-  /* ---------------- Folders (rendered like a channel rail) ---------------- */
-  .folder-pagination-wrapper { display: flex; align-items: center; gap: 8px; margin-bottom: 20px; }
-  .btn-nav-arrow { background: var(--paper-raised); border: 2px solid var(--line); border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: bold; flex-shrink: 0; user-select: none; }
-  .btn-nav-arrow:hover:not(:disabled) { background: var(--ink); color: var(--paper-raised); }
-  .btn-nav-arrow:disabled { opacity: 0.3; cursor: not-allowed; }
-  .folders-grid { display: grid; grid-template-columns: repeat(var(--folder-cols, 5), 1fr); gap: 12px; flex-grow: 1; min-width: 0; }
-
-  .folder-card { background: var(--paper-raised); border-radius: 0; padding: 12px; cursor: pointer; border: 2px solid var(--line); transition: transform 0.1s; box-shadow: 3px 3px 0 var(--ink); display: flex; flex-direction: column; justify-content: space-between; min-height: 100px; position: relative; }
-  .folder-card:hover { transform: translate(-2px,-2px); box-shadow: 5px 5px 0 var(--ink); }
-  .folder-card.active { background: var(--ink); color: var(--paper-raised); box-shadow: 3px 3px 0 var(--line-soft); }
-  .folder-card.active .folder-count { color: var(--paper); opacity: .7; }
-  .folder-top { display: flex; justify-content: space-between; align-items: center; }
-  .folder-icon { width: 28px; height: 28px; border: 2px solid var(--ink); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; flex-shrink: 0; }
-  .btn-delete-folder { background: none; border: none; color: var(--ink-soft); font-size: 14px; font-weight: bold; cursor: pointer; padding: 5px; border-radius: 0; line-height: 1; transition: all 0.15s; min-width: 28px; min-height: 28px; }
-  .btn-delete-folder:hover { color: var(--paper-raised); background: var(--danger); }
-  .folder-name { font-weight: 700; font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .folder-count { font-size: 10.5px; color: var(--ink-soft); font-weight: 600; }
-  .folder-add-btn { border: 2px dashed var(--line); background: transparent; align-items: center; justify-content: center; gap: 4px; box-shadow: none; }
-  .folder-add-btn:hover { transform: none; box-shadow: none; background: var(--paper); }
-
-  /* ---------------- Sub Bab ---------------- */
-  .subbab-section { background: var(--paper-raised); border: 2px solid var(--line); border-radius: 0; padding: 16px 18px; margin-bottom: 20px; }
-  .subbab-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; gap: 12px; flex-wrap: wrap; }
-  .subbab-header h3 { font-size: 13px; font-weight: 700; color: var(--ink); }
-  .btn-folder-download { font-size: 11.5px; font-weight: 700; color: var(--ink); background: var(--paper); border: 2px solid var(--line); padding: 8px 13px; border-radius: 0; cursor: pointer; white-space: nowrap; min-height: 38px; }
-  .btn-folder-download:hover { background: var(--ink); color: var(--paper-raised); }
-  .subbab-pills { display: flex; flex-wrap: wrap; gap: 8px; }
-  .subbab-pill { display: flex; align-items: center; gap: 6px; background: var(--paper); border: 2px solid var(--line); border-radius: 0; padding: 7px 7px 7px 13px; font-size: 12px; font-weight: 700; color: var(--ink); cursor: pointer; transition: all .15s; min-height: 38px; }
-  .subbab-pill.active { background: var(--ink); color: var(--paper-raised); }
-  .subbab-pill .pill-count { color: var(--ink-soft); font-weight: 600; }
-  .subbab-pill.active .pill-count { color: var(--paper); opacity: .75; }
-  .subbab-pill .pill-icon-btn { background: none; border: none; cursor: pointer; font-size: 12px; padding: 5px 6px; border-radius: 0; line-height: 1; color: inherit; opacity: .6; min-width: 28px; min-height: 28px; }
-  .subbab-pill .pill-icon-btn:hover { opacity: 1; }
-  .subbab-pill .pill-icon-btn.danger:hover { color: var(--danger); }
-  .subbab-pill.add-pill { border-style: dashed; color: var(--ink-soft); padding: 7px 15px; }
-
-  .new-note-trigger { margin-bottom: 20px; }
-  .btn-submit { background: var(--ink); color: var(--paper-raised); border: 2px solid var(--line); padding: 12px 20px; border-radius: 0; font-weight: 700; cursor: pointer; font-size: 13px; display: inline-flex; align-items: center; gap: 8px; box-shadow: 3px 3px 0 var(--line-soft); }
-  .btn-submit:hover { transform: translate(-2px,-2px); box-shadow: 5px 5px 0 var(--line-soft); }
-
-  .fab { display: none; }
-
-  /* ---------------- Note cards, styled like a message thread ---------------- */
-  .notes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 18px; padding: 4px 2px 20px; }
-
-  .note-card { background: var(--paper-raised); border-radius: 0; overflow: hidden; border: 2px solid var(--line); box-shadow: 4px 4px 0 var(--line-soft); cursor: pointer; transition: transform .12s ease, box-shadow .12s ease; display: flex; flex-direction: column; }
-  .note-card:hover { transform: translate(-2px,-2px); box-shadow: 6px 6px 0 var(--line-soft); }
-  .note-card:active { transform: translate(0,0); box-shadow: 2px 2px 0 var(--line-soft); }
-
-  .note-card-topbar { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-bottom: 2px solid var(--line); }
-  .note-card-icon { width: 28px; height: 28px; border: 2px solid var(--ink); background: var(--paper-raised); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; flex-shrink: 0; }
-  .note-card-folder-name { font-size: 11.5px; font-weight: 700; flex-grow: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: 0.02em; }
-
-  .note-menu-btn { background: none; border: 2px solid transparent; width: 28px; height: 28px; border-radius: 0; font-size: 15px; font-weight: 700; cursor: pointer; flex-shrink: 0; color: inherit; line-height: 1; }
-  .note-menu-btn:hover { border-color: var(--ink); }
-
-  .note-card-body { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 8px; flex-grow: 1; }
-  .note-title { font-weight: 700; font-size: 15px; color: var(--ink); line-height: 1.35; font-family: 'Space Grotesk', sans-serif; }
-  .note-preview { font-family: 'Source Serif 4', serif; font-size: 13.5px; color: var(--ink-soft); line-height: 21px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-  .note-preview:empty:before, .note-preview.is-empty:before { content: 'Belum ada jawaban. Ketuk untuk menulis.'; color: var(--ink-soft); font-style: italic; }
-  .note-card-foot { display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 10px; font-size: 10.5px; color: var(--ink-soft); font-weight: 600; border-top: 1px solid var(--line-soft); }
-
-  /* ---------------- Note action menu ---------------- */
-  .note-action-menu { position: fixed; background: var(--paper-raised); border: 2px solid var(--line); border-radius: 0; min-width: 172px; box-shadow: 4px 4px 0 var(--ink); display: none; flex-direction: column; padding: 6px; z-index: 400; }
-  .note-action-menu.show { display: flex; }
-  .note-action-menu button { padding: 10px 12px; font-size: 12.5px; font-weight: 700; color: var(--ink); border-radius: 0; cursor: pointer; display: flex; align-items: center; gap: 9px; border: none; background: none; width: 100%; text-align: left; }
-  .note-action-menu button:hover { background: var(--ink); color: var(--paper-raised); }
-  .note-action-menu button.danger { color: var(--danger); }
-  .note-action-menu button.danger:hover { background: var(--danger); color: var(--paper-raised); }
-
-  /* ---------------- Read modal ---------------- */
-  .read-page { background: var(--paper-raised); display: flex; flex-direction: column; max-height: 74vh; overflow: hidden; }
-  .read-header { padding: 16px 22px; display: flex; align-items: center; gap: 12px; border-bottom: 2px solid var(--line); }
-  .read-icon { width: 38px; height: 38px; border: 2px solid var(--ink); background: var(--paper-raised); display: flex; align-items: center; justify-content: center; font-size: 17px; font-weight: 700; flex-shrink: 0; }
-  .read-folder-name { font-size: 11.5px; font-weight: 700; letter-spacing: 0.03em; }
-  .read-date { font-size: 10.5px; opacity: 0.75; margin-top: 2px; font-weight: 600; }
-  .read-body { padding: 20px 22px; overflow-y: auto; }
-  .read-q { font-weight: 700; font-size: 19px; color: var(--ink); line-height: 1.4; margin-bottom: 14px; font-family: 'Space Grotesk', sans-serif; }
-  .read-answer { font-family: 'Source Serif 4', serif; font-size: 15px; color: var(--ink); line-height: 27px; min-height: 60px; }
-  .read-answer:empty:before { content: 'Belum ada jawaban.'; color: var(--ink-soft); font-style: italic; }
-  .read-meta { font-size: 10.5px; color: var(--ink-soft); font-weight: 600; margin-top: 16px; padding-top: 10px; border-top: 1px solid var(--line-soft); }
-
-  /* ---------------- Modal shell ---------------- */
-  .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(33,29,23,0.5); display: flex; align-items: center; justify-content: center; padding: 16px; opacity: 0; pointer-events: none; transition: opacity 0.2s ease; z-index: 999; }
-  .modal-overlay.active { opacity: 1; pointer-events: auto; }
-  .modal { background: var(--paper-raised); border-radius: 0; width: 100%; max-width: 480px; padding: 20px; display: flex; flex-direction: column; gap: 12px; box-shadow: 8px 8px 0 var(--ink); max-height: 90vh; overflow-y: auto; border: 2px solid var(--line); }
-  .modal.small-modal { max-width: 360px; }
-  .modal.read-shell { padding: 0; max-width: 480px; }
-  .modal-header { display: flex; justify-content: space-between; align-items: center; font-weight: 700; font-size: 14.5px; padding-bottom: 10px; border-bottom: 2px solid var(--line); }
-  .modal-header span.close-x { cursor: pointer; font-size: 20px; color: var(--ink-soft); padding: 4px; min-width: 30px; min-height: 30px; display: flex; align-items: center; justify-content: center; }
-  .modal-header span.close-x:hover { color: var(--ink); }
-  .read-close-row { display: flex; justify-content: flex-end; padding: 10px 14px 0; }
-  .read-close-row .close-x { cursor: pointer; font-size: 20px; color: var(--ink-soft); }
-
-  .modal input[type="text"], .modal select { width: 100%; background: var(--paper); border: 2px solid var(--line); border-radius: 0; padding: 11px 13px; font-size: 16px; font-weight: 600; outline: none; color: var(--ink); }
-
-  .toolbar { display: flex; gap: 2px; background: var(--paper); border: 2px solid var(--line); border-bottom: none; border-radius: 0; padding: 4px; flex-wrap: wrap; }
-  .toolbar button { background: transparent; border: none; padding: 6px 8px; font-size: 12px; border-radius: 0; cursor: pointer; color: var(--ink); min-width: 34px; min-height: 34px; white-space: nowrap; }
-  .toolbar button:hover { background: var(--ink); color: var(--paper-raised); }
-  .editor { background: var(--paper); border: 2px solid var(--line); border-radius: 0; padding: 12px; min-height: 140px; max-height: 260px; overflow-y: auto; outline: none; font-size: 15px; font-family: 'Source Serif 4', serif; line-height: 1.6; }
-  .editor[placeholder]:empty:before { content: attr(placeholder); color: var(--ink-soft); font-style: italic; }
-  .editor ul, .editor ol, .read-answer ul, .read-answer ol, .note-preview ul, .note-preview ol { padding-left: 24px; margin: 8px 0; }
-  .editor li, .read-answer li, .note-preview li { margin-bottom: 4px; }
-
-  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
-  .btn-cancel { background: var(--paper-raised); border: 2px solid var(--line); border-radius: 0; padding: 11px 17px; font-weight: 700; font-size: 12.5px; cursor: pointer; color: var(--ink); min-height: 42px; }
-  .btn-cancel:hover { background: var(--paper); }
-  .btn-save { background: var(--ink); color: var(--paper-raised); border: 2px solid var(--line); border-radius: 0; padding: 11px 17px; font-weight: 700; font-size: 12.5px; cursor: pointer; min-height: 42px; }
-  .btn-save:hover { box-shadow: 3px 3px 0 var(--line-soft); }
-
-  .empty-state { color: var(--ink-soft); grid-column: 1/-1; text-align: center; padding: 44px 16px; font-size: 13.5px; font-weight: 600; border: 2px dashed var(--line-soft); }
-
-  /* On desktop the sidebar nav is the folder switcher, so the in-content
-     folder cards would just duplicate it. Keep the cards for mobile only. */
-  @media (min-width: 481px) {
-    .folder-pagination-wrapper { display: none; }
+  .modal-backdrop.show .modal-box{transform:translateY(0) scale(1);}
+  .modal-title{font-family:var(--font-serif);font-size:18px;font-weight:600;margin-bottom:8px;}
+  .modal-message{font-size:13.5px;color:var(--text-dim);line-height:1.5;margin-bottom:14px;}
+  .modal-input{
+    width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:4px;font-family:var(--font-mono);
+    font-size:13.5px;background:var(--surface);color:var(--text);margin-bottom:4px;
   }
-
-  /* ===================== Narrow desktop windows ===================== */
-  @media (max-width: 1000px) {
-    header { padding: 10px 18px; }
-    .content-area { padding: 18px 18px 28px; }
+  .modal-input:focus{outline:none;border-color:var(--teal);}
+  .modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px;}
+  .modal-btn{
+    background:transparent;border:1px solid var(--line);color:var(--text);padding:8px 15px;
+    border-radius:4px;font-family:var(--font-mono);font-size:12.5px;touch-action:manipulation;
   }
-
-  /* ===================== MOBILE ===================== */
-  @media (max-width: 480px) {
-    body { flex-direction: column; }
-    aside { display: none; }
-
-    .mobile-topbar { display: flex; align-items: center; justify-content: space-between; padding: calc(10px + var(--safe-t)) 16px 10px; background: var(--paper-raised); border-bottom: 2px solid var(--line); flex-shrink: 0; }
-    .mobile-topbar .win-dots { padding: 0; }
-    .mobile-topbar .brand-wrap { display: flex; align-items: center; gap: 10px; }
-    .mobile-topbar .brand { font-size: 16px; padding: 0; border: none; }
-
-    header { padding: 8px 14px; gap: 8px; }
-    .search-box { font-size: 16px; min-width: 0; }
-    .profile-btn .profile-label { display: none; }
-    .content-area { padding: 14px 14px calc(90px + var(--safe-b)); }
-
-    .folder-pagination-wrapper { gap: 0; }
-    .btn-nav-arrow { display: none; }
-    .folders-grid { display: flex; grid-template-columns: none; overflow-x: auto; scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch; padding-bottom: 4px; gap: 10px; }
-    .folder-card { flex: 0 0 40%; scroll-snap-align: start; min-height: 92px; }
-
-    .new-note-trigger { display: none; }
-
-    .fab { display: flex; align-items: center; justify-content: center; gap: 8px; position: fixed; right: 18px; bottom: calc(20px + var(--safe-b)); z-index: 120; background: var(--ink); color: var(--paper-raised); border: 2px solid var(--line); border-radius: 0; padding: 15px 19px; font-weight: 700; font-size: 13.5px; box-shadow: 4px 4px 0 var(--line-soft); cursor: pointer; }
-    .fab:active { transform: translate(2px,2px); box-shadow: 1px 1px 0 var(--line-soft); }
-
-    .notes-grid { grid-template-columns: 1fr; gap: 10px; }
-    .note-card { flex-direction: row; align-items: center; gap: 12px; border-radius: 0; padding: 10px 10px; }
-    .note-card:hover { transform: none; }
-    .note-card .card-desktop { display: none; }
-    .note-card .card-mobile { display: flex; align-items: center; gap: 12px; width: 100%; }
-    .mobile-icon { width: 42px; height: 42px; border: 2px solid var(--ink); display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700; flex-shrink: 0; }
-    .mobile-text { flex: 1; min-width: 0; }
-    .mobile-title { font-weight: 700; font-size: 13.5px; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .mobile-meta { font-size: 11.5px; color: var(--ink-soft); font-weight: 600; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-    .modal-overlay { align-items: flex-end; padding: 0; }
-    .modal, .read-shell { max-width: 100%; border-radius: 0; max-height: 88vh; padding-bottom: calc(20px + var(--safe-b)); box-shadow: none; border-top: 2px solid var(--line); border-left: none; border-right: none; border-bottom: none; }
-    .modal.small-modal { max-width: 100%; }
-    .modal:not(.read-shell)::before { content: ''; display: block; width: 40px; height: 4px; background: var(--line-soft); margin: -6px auto 4px; }
-
-    .dropdown-menu { position: fixed; left: 0; right: 0; bottom: 0; top: auto; width: 100%; border-radius: 0; padding: 10px 10px calc(14px + var(--safe-b)); box-shadow: none; border-top: 2px solid var(--line); border-left: none; border-right: none; border-bottom: none; }
-    .dropdown-item { font-size: 14px; padding: 14px; }
+  .modal-btn:hover{border-color:var(--teal);color:var(--teal);}
+  .modal-btn.primary{background:var(--mustard);border-color:var(--mustard);color:#221A0B;font-weight:600;}
+  .modal-btn.primary:hover{background:#CE9A3C;color:#221A0B;}
+  .modal-btn.danger{background:var(--danger);border-color:var(--danger);color:#fff;font-weight:600;}
+  .modal-btn.danger:hover{background:#B85F4C;color:#fff;}
+  .sheet-list{margin-top:4px;}
+  .sheet-item{
+    display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:11px 4px;
+    border:none;border-bottom:1px solid var(--line);background:none;font-family:var(--font-serif);
+    font-size:14.5px;color:var(--text);touch-action:manipulation;
   }
+  .sheet-item:last-child{border-bottom:none;}
+  .sheet-item:hover{color:var(--teal);}
+  .sheet-item.danger{color:var(--danger);}
 
-  .card-mobile { display: none; }
+  /* ---------- Toasts ---------- */
+  .toast-root{position:fixed;bottom:16px;left:0;right:0;display:flex;flex-direction:column;
+    align-items:center;gap:8px;z-index:300;pointer-events:none;}
+  .toast{
+    background:var(--ink);color:var(--paper);padding:10px 18px;border-radius:20px;font-size:13px;
+    font-family:var(--font-mono);box-shadow:0 6px 20px rgba(0,0,0,.3);opacity:0;transform:translateY(8px);
+    transition:opacity .2s ease,transform .2s ease;max-width:88vw;text-align:center;
+  }
+  .toast.show{opacity:1;transform:none;}
+  .toast.danger{background:var(--danger);color:#fff;}
+
+  /* scrollbars */
+  ::-webkit-scrollbar{width:10px;height:10px;}
+  ::-webkit-scrollbar-thumb{background:var(--line);border-radius:6px;}
+  .sidebar::-webkit-scrollbar-thumb{background:var(--ink-line);}
+
+  /* ---------- Responsive / mobile ---------- */
+  @media (max-width:860px){
+    .bottom-nav{display:flex;}
+    .context-panel{display:none;}
+    .mobile-only{display:inline-flex;}
+    .top-actions .btn:not(.icon-btn){display:none;}
+    .search-wrap{order:3;flex:1 1 100%;max-width:none;margin-top:4px;}
+    .sidebar{
+      position:fixed;top:0;bottom:0;left:0;width:82%;max-width:310px;z-index:70;
+      transform:translateX(-100%);transition:transform .22s ease;box-shadow:3px 0 24px rgba(0,0,0,.35);
+    }
+    .sidebar.open{transform:translateX(0);}
+    .list-header{padding:14px 16px 8px;}
+    .note-row{padding:12px 16px;}
+    .editor-meta{padding:14px 16px 0;}
+    .title-input{font-size:21px;}
+    .editor-toolbar{padding:8px 12px;}
+    .editor-body{padding:12px 12px 16px;flex-direction:column;}
+    .modal-backdrop{align-items:flex-end;padding:0;}
+    .modal-box{width:100%;border-radius:14px 14px 0 0;transform:translateY(100%);}
+    .modal-backdrop.show .modal-box{transform:translateY(0);}
+    .modal-actions{flex-direction:column-reverse;}
+    .modal-actions .modal-btn{width:100%;padding:11px;}
+  }
+  @media (min-width:861px){
+    .drawer-backdrop{display:none;}
+  }
 </style>
 </head>
 <body>
+<div class="shell">
 
-<aside>
-  <div class="side-scroll">
-    <div class="win-dots"><span></span><span></span><span></span></div>
-    <div class="brand">Mino Notes<small>Personal note archive</small></div>
-    <div class="side-section-head" onclick="toggleSidebarFolders()">
-      <span class="side-caret" id="sidebarCaret">−</span>
-      <span class="side-folder-icon">🗀</span> Folders
+  <div class="topbar">
+    <div class="brand"><b>Simpul</b> · basis pengetahuan pribadi <span id="storageStatus" style="font-size:10px;color:#8FA69A;margin-left:6px">● tersimpan lokal</span></div>
+    <div class="search-wrap">
+      <span class="ico">⌕</span>
+      <input id="searchInput" type="text" placeholder="cari judul, isi, atau tag…">
     </div>
-    <ul class="channel-list" id="sidebarFolderList"></ul>
-  </div>
-  <div class="sidebar-foot" id="storageStatusDesktop">Menyimpan...</div>
-</aside>
-
-<div id="app">
-  <div class="mobile-topbar">
-    <div class="brand-wrap">
-      <div class="win-dots"><span></span><span></span><span></span></div>
-      <div class="brand">Mino Notes</div>
+    <div class="top-actions">
+      <button class="btn" id="btnGraph">Peta Pengetahuan</button>
+      <button class="btn" id="btnExport">Ekspor JSON</button>
+      <button class="btn" id="btnImport">Impor JSON</button>
+      <input type="file" id="fileImport" accept=".json" style="display:none">
+      <button class="btn primary" id="btnNew">+ Catatan Baru</button>
     </div>
-    <span id="storageStatusMobile" style="font-size:11px;font-weight:700;color:var(--ink-soft);">⏳</span>
   </div>
 
-  <header>
-    <input type="text" id="searchInput" class="search-box" placeholder="Cari catatan..." oninput="renderNotes()">
-    <div class="profile-area">
-      <button class="profile-btn" onclick="toggleProfileMenu(event)">
-        <div class="avatar">M</div>
-        <span class="profile-label">Profile ▾</span>
-      </button>
-      <div class="dropdown-menu" id="profileDropdown">
-        <button class="dropdown-item" onclick="exportPDF('All Notes','All')">⬇ Unduh Semua (PDF)</button>
-        <button class="dropdown-item" onclick="exportPDF(activeFolder,'All')">⬇ Unduh Folder Ini (PDF)</button>
-        <div class="dropdown-divider"></div>
-        <button class="dropdown-item" onclick="exportJSON()">▤ Export JSON</button>
-        <label class="dropdown-item" style="cursor: pointer;">
-          ▢ Import JSON
-          <input type="file" id="importFile" accept=".json" onchange="importJSON(event)" style="display:none;">
-        </label>
-      </div>
-    </div>
-  </header>
-
-  <div class="dot-strip"></div>
-
-  <div class="sheet-backdrop" id="sheetBackdrop" onclick="closeAllSheets()"></div>
-
-  <div class="content-area">
-    <h2 class="section-title">Folders / Categories</h2>
-    <div class="folder-pagination-wrapper">
-      <button class="btn-nav-arrow" id="btnPrevFolder" onclick="changeFolderPage(-1)">◀</button>
-      <div class="folders-grid" id="foldersContainer"></div>
-      <button class="btn-nav-arrow" id="btnNextFolder" onclick="changeFolderPage(1)">▶</button>
-    </div>
-
-    <div class="new-note-trigger">
-      <button class="btn-submit" onclick="openModal()">+ Buat Catatan Baru</button>
-    </div>
-
-    <div class="subbab-section" id="subbabSectionContainer" style="display:none;"></div>
-
-    <h2 class="section-title" id="notesTitle">My Notes</h2>
-    <div class="notes-grid" id="notesGrid"></div>
+  <div class="main">
+    <div class="sidebar" id="sidebar"></div>
+    <div class="content" id="content"></div>
   </div>
 
-  <button class="fab" onclick="openModal()">✎ Catatan Baru</button>
+  <nav class="bottom-nav" id="bottomNav">
+    <button class="bn-btn" data-bn="all"><span class="bn-ico">🗂</span><span class="bn-label">Catatan</span></button>
+    <button class="bn-btn" data-bn="folders"><span class="bn-ico">📁</span><span class="bn-label">Folder</span></button>
+    <button class="bn-btn bn-main" data-bn="new"><span class="bn-ico">✎</span></button>
+    <button class="bn-btn" data-bn="graph"><span class="bn-ico">◈</span><span class="bn-label">Peta</span></button>
+    <button class="bn-btn" data-bn="more"><span class="bn-ico">⋯</span><span class="bn-label">Lainnya</span></button>
+  </nav>
+
 </div>
 
-<!-- Shared per-note action menu -->
-<div class="note-action-menu" id="noteActionMenu">
-  <button onclick="noteMenuAction('view')">👁 Lihat Catatan</button>
-  <button onclick="noteMenuAction('edit')">✎ Edit</button>
-  <button onclick="noteMenuAction('download')">⬇ Unduh PDF</button>
-  <button class="danger" onclick="noteMenuAction('delete')">✖ Hapus</button>
-</div>
-
-<!-- Modal Rich-Text Editor -->
-<div class="modal-overlay" id="modalOverlay">
-  <div class="modal">
-    <div class="modal-header">
-      <span id="modalTitleLabel">Catatan Baru</span>
-      <span class="close-x" onclick="closeModal()">&times;</span>
-    </div>
-    <input type="text" id="qInput" placeholder="Tulis pertanyaan / judul...">
-    <select id="folderSelect" onchange="onModalFolderChange()"></select>
-    <select id="subbabSelect" onchange="onModalSubbabChange()"></select>
-    <div>
-      <div class="toolbar">
-        <button type="button" title="Bold" onclick="execCmd('bold')"><b>B</b></button>
-        <button type="button" title="Italic" onclick="execCmd('italic')"><i>I</i></button>
-        <button type="button" title="Underline" onclick="execCmd('underline')"><u>U</u></button>
-        <button type="button" title="Strikethrough" onclick="execCmd('strikeThrough')"><s>S</s></button>
-        <button type="button" title="Bullet List" onclick="execCmd('insertUnorderedList')">• List</button>
-        <button type="button" title="Numbered List" onclick="execCmd('insertOrderedList')">1. List</button>
-      </div>
-      <div id="editor" class="editor" contenteditable="true" placeholder="Tulis isi jawaban/refleksi di sini..."></div>
-    </div>
-    <div class="modal-actions">
-      <button class="btn-cancel" onclick="closeModal()">Batal</button>
-      <button class="btn-save" onclick="saveNote()">Simpan Catatan</button>
-    </div>
-  </div>
-</div>
-
-<!-- Modal: baca catatan -->
-<div class="modal-overlay" id="readOverlay">
-  <div class="modal read-shell">
-    <div class="read-page" id="readPageContent"></div>
-    <div class="modal-actions" style="padding:14px;">
-      <button class="btn-cancel" id="readDeleteBtn">Hapus</button>
-      <button class="btn-cancel" id="readDownloadBtn" style="color:#3f5930; border-color:#3f5930;">⬇ Unduh PDF</button>
-      <button class="btn-save" id="readEditBtn">Edit Catatan</button>
-    </div>
-  </div>
-</div>
-
-<!-- Modal input generik (Tambah Folder / Tambah Sub Bab) -->
-<div class="modal-overlay" id="inputModalOverlay">
-  <div class="modal small-modal">
-    <div class="modal-header">
-      <span id="inputModalTitleLabel">Tambah</span>
-      <span class="close-x" onclick="closeInputModal()">&times;</span>
-    </div>
-    <input type="text" id="inputModalField" placeholder="">
-    <div class="modal-actions">
-      <button class="btn-cancel" onclick="closeInputModal()">Batal</button>
-      <button class="btn-save" onclick="confirmInputModal()">Simpan</button>
-    </div>
-  </div>
-</div>
+<div class="drawer-backdrop" id="drawerBackdrop" hidden></div>
+<div class="modal-backdrop" id="modalBackdrop" hidden><div class="modal-box" id="modalBox"></div></div>
+<div class="toast-root" id="toastRoot"></div>
 
 <script>
-  const DATA_KEY = 'mino_notes_data_v2';
+(function(){
+"use strict";
 
-  // Visual theme per folder: muted retro tones + a matching glyph icon.
-  // Falls back to a hash-based pick for custom folders. This does not
-  // affect the stored JSON shape (notes/folders/folderSubbabs) at all.
-  const FOLDER_ICON_MAP = { 'Movie Review': '▶', 'Class Notes': '▦', 'Book Lists': '≡', 'Tech & Code': '</>', 'General': '#' };
-  const FALLBACK_ICONS = ['#', '◆', '★', '●', '▣', '✎', '▢', '✦', '◎', '❀'];
-  const THEMES = [
-    { bg: '#e8c4b8', text: '#7a2e1d' },
-    { bg: '#c9d6c3', text: '#3f5930' },
-    { bg: '#e3d5a8', text: '#7a5c17' },
-    { bg: '#c7d1d9', text: '#33465a' },
-    { bg: '#d9c2d9', text: '#5c3566' },
-    { bg: '#f0c9c0', text: '#8a3324' },
-    { bg: '#c3dbd9', text: '#2c5c56' },
-    { bg: '#e8dcc0', text: '#6b5a2e' },
+/* ============ DATA LAYER ============ */
+const STORAGE_KEY = "simpul_kb_v1";
+
+// Persistent local storage.
+// The previous version used an in-memory object when window.storage was unavailable,
+// so every browser reload recreated the default sample data. We now use localStorage
+// as the browser fallback, which survives reloads and browser restarts.
+const storageApi = (window.storage && typeof window.storage.get === "function")
+  ? window.storage
+  : {
+      async get(key){
+        // When opened through server.py, data is stored in the real data.json file.
+        // When opened directly as file://, fall back to browser localStorage.
+        if(location.protocol === "http:" || location.protocol === "https:"){
+          try{
+            const res = await fetch("/api/data", {cache:"no-store"});
+            if(res.ok){
+              const value = await res.text();
+              if(value) return {key,value};
+            }
+          }catch(e){}
+        }
+        const value = localStorage.getItem(key);
+        return value !== null ? {key,value} : null;
+      },
+      async set(key,value){
+        if(location.protocol === "http:" || location.protocol === "https:"){
+          try{
+            const res = await fetch("/api/data", {
+              method:"POST",
+              headers:{"Content-Type":"application/json"},
+              body:value
+            });
+            if(res.ok) return {key,value};
+          }catch(e){}
+        }
+        localStorage.setItem(key,value);
+        return {key,value};
+      },
+    };
+
+function uid(){ return Math.random().toString(36).slice(2,10) + Date.now().toString(36).slice(-4); }
+function now(){ return new Date().toISOString(); }
+function fmtDate(iso){
+  const d = new Date(iso);
+  return d.toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'});
+}
+
+function defaultData(){
+  const mk = (name, icon, children) => ({id:uid(), name, icon:icon||null, children:children||[]});
+  const folders = [
+    mk("Programming","📚",[mk("Flutter"),mk("Dart"),mk("Firebase"),mk("Linux"),mk("Git")]),
+    mk("Learning","🎓",[mk("Algorithms"),mk("UI/UX"),mk("Database")]),
+    mk("Ideas","💡",[mk("App Ideas"),mk("Website Ideas"),mk("Business Ideas")]),
+    mk("Cheatsheets","🔧",[mk("Linux"),mk("Git"),mk("Flutter")]),
+    mk("Bookmarks","🔖",[mk("Articles"),mk("Documentation")]),
   ];
+  const flutterFolder = folders[0].children[0].id;
+  const t = now();
+  const notes = [
+    {
+      id:uid(), title:"Responsive Layout Flutter", folderId:flutterFolder,
+      tags:["flutter","responsive","mobile"], favorite:true, archived:false,
+      createdAt:t, updatedAt:t,
+      content:
+`## Ringkasan
 
-  function hashStr(str) { let h = 0; for (let i = 0; i < str.length; i++) h = str.charCodeAt(i) + ((h << 5) - h); return Math.abs(h); }
-  function themeFor(folderName) { return THEMES[hashStr(folderName || 'General') % THEMES.length]; }
-  function iconFor(folderName) {
-    if (FOLDER_ICON_MAP[folderName]) return FOLDER_ICON_MAP[folderName];
-    return FALLBACK_ICONS[hashStr(folderName || 'General') % FALLBACK_ICONS.length];
+Cara membuat layout Flutter yang menyesuaikan ukuran layar (HP, tablet, desktop) menggunakan \`LayoutBuilder\` dan \`MediaQuery\`.
+
+## Contoh
+
+\`\`\`dart
+LayoutBuilder(
+  builder: (context, constraints) {
+    if (constraints.maxWidth < 600) {
+      return MobileView();
+    }
+    return DesktopView();
+  },
+)
+\`\`\`
+
+## Checklist implementasi
+
+- [x] Pakai LayoutBuilder di root halaman
+- [x] Tentukan breakpoint (600px, 900px)
+- [ ] Uji di tablet
+- [ ] Uji di desktop lebar
+
+## Catatan terkait
+
+Lihat juga [[Flutter MediaQuery]] dan [[Adaptive Layout Breakpoints]].`
+    },
+    {
+      id:uid(), title:"Flutter MediaQuery", folderId:flutterFolder,
+      tags:["flutter","responsive"], favorite:false, archived:false,
+      createdAt:t, updatedAt:t,
+      content:
+`\`MediaQuery.of(context).size\` memberi tahu ukuran layar saat ini. Dipakai bersama [[Responsive Layout Flutter]] untuk menentukan breakpoint di [[Adaptive Layout Breakpoints]].`
+    },
+    {
+      id:uid(), title:"Adaptive Layout Breakpoints", folderId:flutterFolder,
+      tags:["flutter","ui"], favorite:false, archived:false,
+      createdAt:t, updatedAt:t,
+      content:
+`Konvensi breakpoint yang umum dipakai:
+
+- **Mobile**: < 600px
+- **Tablet**: 600–900px
+- **Desktop**: > 900px
+
+Dipakai di [[Responsive Layout Flutter]].`
+    }
+  ];
+  return {folders, notes, ui:{lastFolder:null,lastTag:null,view:"all"}};
+}
+
+let DB = null;
+
+async function load(){
+  try{
+    const result = await storageApi.get(STORAGE_KEY, false);
+    if(result && result.value){
+      const parsed = JSON.parse(result.value);
+      if(parsed && Array.isArray(parsed.notes) && Array.isArray(parsed.folders)) return parsed;
+    }
+  }catch(e){
+    console.warn("Gagal memuat data tersimpan, memulai baru.", e);
+  }
+  const d = defaultData();
+  await persist(d);
+  return d;
+}
+async function persist(d){
+  try{ await storageApi.set(STORAGE_KEY, JSON.stringify(d||DB), false); }
+  catch(e){ console.error("Gagal menyimpan data", e); }
+}
+let saveQueue = Promise.resolve();
+function saveNow(){
+  // Queue writes so rapid editor changes cannot race each other.
+  saveQueue = saveQueue.then(()=>persist(DB)).catch(err=>console.error("Gagal menyimpan data",err));
+  return saveQueue;
+}
+
+/* ---------- folder helpers ---------- */
+function allFolders(){
+  const out = [];
+  (function walk(list, path){
+    list.forEach(f=>{
+      out.push({folder:f, path:[...path,f.name]});
+      if(f.children && f.children.length) walk(f.children, [...path,f.name]);
+    });
+  })(DB.folders, []);
+  return out;
+}
+function findFolder(id){ return allFolders().find(x=>x.folder.id===id); }
+function folderPathStr(id){
+  const f = findFolder(id);
+  return f ? f.path.join(" / ") : "Tanpa folder";
+}
+function addSubfolder(parentId, name){
+  if(!name) return;
+  const node = {id:uid(), name, icon:null, children:[]};
+  if(!parentId){ DB.folders.push(node); }
+  else{
+    const target = findFolder(parentId);
+    if(target) target.folder.children.push(node);
+    state.expandedFolders.add(parentId);
+  }
+  saveNow(); renderSidebar();
+  showToast("Folder \""+name+"\" ditambahkan");
+}
+
+/* ---------- note helpers ---------- */
+function allTags(){
+  const s = new Set();
+  DB.notes.forEach(n=> n.tags.forEach(t=>s.add(t)));
+  return Array.from(s).sort();
+}
+function noteById(id){ return DB.notes.find(n=>n.id===id); }
+function wikilinksIn(content){
+  const out = [];
+  const re = /\[\[([^\]]+)\]\]/g;
+  let m;
+  while((m = re.exec(content))) out.push(m[1].trim());
+  return out;
+}
+function outgoingLinks(note){
+  return wikilinksIn(note.content||"")
+    .map(title => DB.notes.find(n=> n.title.toLowerCase() === title.toLowerCase()))
+    .filter(Boolean);
+}
+function backlinksTo(note){
+  return DB.notes.filter(n=>
+    n.id !== note.id &&
+    wikilinksIn(n.content||"").some(t => t.toLowerCase() === note.title.toLowerCase())
+  );
+}
+
+/* ============ APP STATE ============ */
+const state = {
+  route: "list",          // "list" | "editor" | "graph"
+  filterFolder: null,
+  filterTag: null,
+  filterSpecial: null,     // "favorite" | "archive" | null
+  search: "",
+  activeNoteId: null,
+  editorMode: "split",     // "split" | "edit-only" | "preview-only"
+  expandedFolders: new Set(),
+};
+
+/* ============ UTIL ============ */
+function escHtml(s){
+  return String(s??"").replace(/[&<>]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+}
+function escAttr(s){
+  return String(s??"").replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+}
+
+/* ============ TOASTS ============ */
+function showToast(message, opts){
+  opts = opts||{};
+  const root = document.getElementById("toastRoot");
+  const el = document.createElement("div");
+  el.className = "toast" + (opts.danger?" danger":"");
+  el.textContent = message;
+  root.appendChild(el);
+  requestAnimationFrame(()=> el.classList.add("show"));
+  setTimeout(()=>{
+    el.classList.remove("show");
+    setTimeout(()=> el.remove(), 220);
+  }, opts.duration||2400);
+}
+
+/* ============ MODAL SYSTEM ============ */
+function openModal(opts){
+  return new Promise((resolve)=>{
+    const backdrop = document.getElementById("modalBackdrop");
+    const box = document.getElementById("modalBox");
+    box.innerHTML = `
+      <div class="modal-title">${escHtml(opts.title||"")}</div>
+      ${opts.message?`<div class="modal-message">${escHtml(opts.message)}</div>`:""}
+      ${opts.input?`<input class="modal-input" id="modalInputField" value="${escAttr(opts.inputValue||"")}" placeholder="${escAttr(opts.inputPlaceholder||"")}">`:""}
+      <div class="modal-actions">
+        ${opts.hideCancel?"":`<button class="modal-btn" id="modalCancel">${escHtml(opts.cancelText||"Batal")}</button>`}
+        <button class="modal-btn ${opts.danger?'danger':'primary'}" id="modalConfirm">${escHtml(opts.confirmText||"OK")}</button>
+      </div>`;
+    backdrop.hidden = false;
+    requestAnimationFrame(()=> backdrop.classList.add("show"));
+    const field = document.getElementById("modalInputField");
+    const confirmBtn = document.getElementById("modalConfirm");
+    if(field){ field.focus(); field.select(); } else { confirmBtn.focus(); }
+
+    function finish(result){
+      backdrop.classList.remove("show");
+      setTimeout(()=>{ backdrop.hidden = true; }, 180);
+      document.removeEventListener("keydown", onKey);
+      resolve(result);
+    }
+    function onKey(e){
+      if(e.key==="Escape") finish(opts.input? null : false);
+      else if(e.key==="Enter" && field) { e.preventDefault(); confirmBtn.click(); }
+    }
+    document.addEventListener("keydown", onKey);
+    confirmBtn.addEventListener("click", ()=> finish(opts.input ? field.value : true));
+    const cancelBtn = document.getElementById("modalCancel");
+    if(cancelBtn) cancelBtn.addEventListener("click", ()=> finish(opts.input? null : false));
+    backdrop.addEventListener("click", function bdClick(e){
+      if(e.target===backdrop){ finish(opts.input?null:false); backdrop.removeEventListener("click", bdClick); }
+    });
+  });
+}
+function showConfirm(opts){ return openModal(Object.assign({}, opts, {input:false})); }
+function showPromptModal(opts){ return openModal(Object.assign({}, opts, {input:true})); }
+function showAlert(opts){ return openModal(Object.assign({}, opts, {input:false, hideCancel:true, confirmText: opts.confirmText||"Mengerti"})); }
+
+function openActionSheet(title, actions){
+  const backdrop = document.getElementById("modalBackdrop");
+  const box = document.getElementById("modalBox");
+  box.innerHTML = `<div class="modal-title">${escHtml(title)}</div>
+    <div class="sheet-list">
+      ${actions.map((a,i)=>`<button class="sheet-item ${a.danger?'danger':''}" data-act="${i}">${a.icon||''} ${escHtml(a.label)}</button>`).join("")}
+    </div>
+    <div class="modal-actions"><button class="modal-btn" id="modalCancel">Tutup</button></div>`;
+  backdrop.hidden = false;
+  requestAnimationFrame(()=> backdrop.classList.add("show"));
+  function close(){
+    backdrop.classList.remove("show");
+    setTimeout(()=>{ backdrop.hidden = true; }, 180);
+    document.removeEventListener("keydown", onKey);
+  }
+  function onKey(e){ if(e.key==="Escape") close(); }
+  document.addEventListener("keydown", onKey);
+  box.querySelectorAll("[data-act]").forEach(btn=> btn.addEventListener("click", ()=>{
+    close(); actions[+btn.getAttribute("data-act")].onClick();
+  }));
+  document.getElementById("modalCancel").addEventListener("click", close);
+  backdrop.addEventListener("click", function bdClick(e){
+    if(e.target===backdrop){ close(); backdrop.removeEventListener("click", bdClick); }
+  });
+}
+function showLinksSheet(note){
+  const outs = outgoingLinks(note), backs = backlinksTo(note);
+  const backdrop = document.getElementById("modalBackdrop");
+  const box = document.getElementById("modalBox");
+  box.innerHTML = `<div class="modal-title">Tautan catatan ini</div>
+    <div class="ctx-title">TERTAUT KE (${outs.length})</div>
+    ${outs.length?outs.map(o=>`<div class="link-row" data-goto="${o.id}"><span class="arrow">→</span>${escHtml(o.title)}</div>`).join(""):`<div class="ctx-empty">Tidak ada tautan keluar.</div>`}
+    <div class="ctx-title" style="margin-top:16px">DISEBUT DARI (${backs.length})</div>
+    ${backs.length?backs.map(o=>`<div class="link-row" data-goto="${o.id}"><span class="arrow">←</span>${escHtml(o.title)}</div>`).join(""):`<div class="ctx-empty">Belum ada catatan lain yang menyebut ini.</div>`}
+    <div class="modal-actions"><button class="modal-btn" id="modalCancel">Tutup</button></div>`;
+  backdrop.hidden = false;
+  requestAnimationFrame(()=> backdrop.classList.add("show"));
+  function close(){ backdrop.classList.remove("show"); setTimeout(()=>{ backdrop.hidden=true; },180); }
+  box.querySelectorAll("[data-goto]").forEach(n=> n.addEventListener("click", ()=>{ close(); openNote(n.getAttribute("data-goto")); }));
+  document.getElementById("modalCancel").addEventListener("click", close);
+  backdrop.addEventListener("click", function bdClick(e){ if(e.target===backdrop){ close(); backdrop.removeEventListener("click", bdClick); } });
+}
+
+/* ============ THEME: TERANG PERMANEN ============ */
+function initTheme(){
+  // Simpul selalu menggunakan mode terang, apa pun tema Chrome/OS.
+  document.documentElement.setAttribute("data-theme", "light");
+}
+
+/* ============ MOBILE DRAWER ============ */
+function openDrawer(){
+  document.getElementById("sidebar").classList.add("open");
+  const bd = document.getElementById("drawerBackdrop");
+  bd.hidden = false;
+  requestAnimationFrame(()=> bd.classList.add("show"));
+}
+function closeDrawer(){
+  document.getElementById("sidebar").classList.remove("open");
+  const bd = document.getElementById("drawerBackdrop");
+  bd.classList.remove("show");
+  setTimeout(()=>{ bd.hidden = true; }, 200);
+}
+document.getElementById("drawerBackdrop").addEventListener("click", closeDrawer);
+
+/* ============ RENDER: SIDEBAR ============ */
+function renderSidebar(){
+  const el = document.getElementById("sidebar");
+  const counts = {
+    all: DB.notes.filter(n=>!n.archived).length,
+    fav: DB.notes.filter(n=>n.favorite && !n.archived).length,
+    arch: DB.notes.filter(n=>n.archived).length,
+  };
+
+  let html = `<div class="side-section">
+    <div class="side-item ${state.filterSpecial===null && !state.filterFolder && !state.filterTag ? 'active':''}" data-nav="all">
+      <span>🗂 Semua catatan</span><span class="count">${counts.all}</span>
+    </div>
+    <div class="side-item ${state.filterSpecial==='favorite'?'active':''}" data-nav="favorite">
+      <span>★ Favorit</span><span class="count">${counts.fav}</span>
+    </div>
+    <div class="side-item ${state.filterSpecial==='archive'?'active':''}" data-nav="archive">
+      <span>▤ Arsip</span><span class="count">${counts.arch}</span>
+    </div>
+  </div>`;
+
+  html += `<div class="side-section"><div class="side-label">FOLDER</div><div class="tree">`;
+  html += renderFolderLevel(DB.folders, 0);
+  html += `</div><button class="side-add" data-add-root="1">+ tambah folder utama</button></div>`;
+
+  const tags = allTags();
+  if(tags.length){
+    html += `<div class="side-section"><div class="side-label">TAG</div><div class="tag-cloud">`;
+    tags.forEach(t=>{
+      html += `<span class="tag-pill ${state.filterTag===t?'active':''}" data-tag="${escAttr(t)}">#${escHtml(t)}</span>`;
+    });
+    html += `</div></div>`;
   }
 
-  let notes = [];
-  let folders = ['All Notes', 'Movie Review', 'Class Notes', 'Book Lists', 'Tech & Code'];
-  let folderSubbabs = {};
-  let activeFolder = 'All Notes';
-  let activeSubbab = 'All';
-  let folderCurrentPage = 0;
-  let editingId = null;
-  let readingId = null;
-  let inputModalCallback = null;
-  let noteMenuTargetId = null;
-  let dataLoaded = false;
-  let sidebarFoldersCollapsed = false;
+  el.innerHTML = html;
 
-  function isMobile() { return window.innerWidth <= 480; }
+  function navigateAndClose(fn){ fn(); closeDrawer(); }
 
-  function getFoldersPerPage() {
-    if (isMobile()) return folders.length; // horizontal scroll shows them all, no js pagination needed
-    const wrapper = document.querySelector('.folder-pagination-wrapper');
-    const availableWidth = wrapper ? wrapper.clientWidth - 100 : window.innerWidth - 120;
-    const count = Math.floor(availableWidth / 165);
-    return Math.max(2, Math.min(6, count));
-  }
-
-  function setStorageStatus(text) {
-    const a = document.getElementById('storageStatusDesktop');
-    const b = document.getElementById('storageStatusMobile');
-    if (a) a.innerText = text;
-    if (b) b.innerText = text.includes('✓') ? '✓' : (text.includes('⏳') ? '⏳' : '⚠');
-  }
-
-  document.addEventListener('DOMContentLoaded', async () => {
-    setStorageStatus('⏳ Memuat...');
-    await loadData();
-    dataLoaded = true;
-    setStorageStatus('✓ Tersimpan');
+  el.querySelectorAll("[data-nav]").forEach(n=> n.addEventListener("click", ()=> navigateAndClose(()=>{
+    const v = n.getAttribute("data-nav");
+    state.filterFolder=null; state.filterTag=null;
+    state.filterSpecial = (v==="all") ? null : v;
+    state.route="list"; state.activeNoteId=null;
     render();
+  })));
+  el.querySelectorAll("[data-folder]").forEach(n=> n.addEventListener("click", ()=> navigateAndClose(()=>{
+    state.filterFolder = n.getAttribute("data-folder");
+    state.filterTag=null; state.filterSpecial=null;
+    state.route="list"; state.activeNoteId=null;
+    render();
+  })));
+  el.querySelectorAll("[data-tag]").forEach(n=> n.addEventListener("click", ()=> navigateAndClose(()=>{
+    state.filterTag = n.getAttribute("data-tag");
+    state.filterFolder=null; state.filterSpecial=null;
+    state.route="list"; state.activeNoteId=null;
+    render();
+  })));
+  el.querySelectorAll("[data-toggle]").forEach(btn=> btn.addEventListener("click", (e)=>{
+    e.stopPropagation();
+    const id = btn.getAttribute("data-toggle");
+    if(state.expandedFolders.has(id)) state.expandedFolders.delete(id);
+    else state.expandedFolders.add(id);
+    renderSidebar();
+  }));
+  const addRoot = el.querySelector("[data-add-root]");
+  if(addRoot) addRoot.addEventListener("click", async ()=>{
+    const name = await showPromptModal({title:"Folder utama baru", inputPlaceholder:"Nama folder", confirmText:"Tambah"});
+    if(name && name.trim()) addSubfolder(null, name.trim());
+  });
+  el.querySelectorAll("[data-add-sub]").forEach(n=> n.addEventListener("click", async (e)=>{
+    e.stopPropagation();
+    const pid = n.getAttribute("data-add-sub");
+    const name = await showPromptModal({title:"Subfolder baru", inputPlaceholder:"Nama subfolder", confirmText:"Tambah"});
+    if(name && name.trim()) addSubfolder(pid, name.trim());
+  }));
+}
 
-    document.addEventListener('click', (e) => {
-      if (!e.target.closest('.profile-area')) closeAllSheets();
-      if (!e.target.closest('.note-menu-btn') && !e.target.closest('.note-action-menu')) closeNoteMenu();
+function renderFolderLevel(list, depth){
+  let out = "";
+  list.forEach((f, idx)=>{
+    const expanded = state.expandedFolders.has(f.id);
+    const last = idx === list.length-1;
+    const branch = depth===0 ? "" : (last ? "└── " : "├── ");
+    const count = DB.notes.filter(n=>n.folderId===f.id && !n.archived).length;
+    const hasChildren = f.children && f.children.length>0;
+    out += `<div class="tree-node">
+      <div class="tree-row ${state.filterFolder===f.id?'active':''}" style="padding-left:${depth*4}px">
+        <span class="tree-branch">${branch}</span>
+        <button class="tree-chevron ${expanded?'open':''}" data-toggle="${f.id}" aria-label="Buka atau tutup folder">▸</button>
+        <span class="tree-label" data-folder="${f.id}">${f.icon?f.icon+' ':''}${escHtml(f.name)}</span>
+        <span class="count">${count||''}</span>
+      </div>
+      <div class="tree-children" style="display:${expanded?'block':'none'}">
+        ${hasChildren ? renderFolderLevel(f.children, depth+1) : ""}
+        <div class="tree-row tree-add-row" data-add-sub="${f.id}" style="padding-left:${(depth+1)*4}px">
+          <span class="tree-branch">${hasChildren?'└── ':''}</span><span class="tree-add-label">+ subfolder</span>
+        </div>
+      </div>
+    </div>`;
+  });
+  return out;
+}
+
+/* ============ RENDER: CONTENT ROUTER ============ */
+function render(){
+  renderSidebar();
+  const el = document.getElementById("content");
+  if(state.route === "graph"){
+    el.innerHTML = `<div class="graph-wrap" id="graphWrap"></div>`;
+    renderGraph();
+  } else if(state.route === "editor" && state.activeNoteId){
+    el.innerHTML = `<div class="editor-pane" id="editorPane"></div><div class="context-panel" id="ctxPanel"></div>`;
+    renderEditor();
+    renderContextPanel();
+  } else {
+    el.innerHTML = `<div class="list-pane" id="listPane"></div><div class="context-panel" id="ctxPanel"></div>`;
+    renderList();
+    renderContextPanel();
+  }
+  document.getElementById("btnGraph").classList.toggle("primary", state.route==="graph");
+  updateBottomNavActive();
+}
+
+function updateBottomNavActive(){
+  const isAll = state.route==="list" && !state.filterFolder && !state.filterTag && !state.filterSpecial;
+  document.querySelectorAll("#bottomNav [data-bn]").forEach(b=>{
+    const key = b.getAttribute("data-bn");
+    b.classList.toggle("active", (key==="all"&&isAll) || (key==="graph"&&state.route==="graph"));
+  });
+}
+
+/* ============ RENDER: LIST ============ */
+function currentFilterLabel(){
+  if(state.filterSpecial==="favorite") return "Favorit";
+  if(state.filterSpecial==="archive") return "Arsip";
+  if(state.filterFolder) return folderPathStr(state.filterFolder);
+  if(state.filterTag) return "#"+state.filterTag;
+  return "Semua catatan";
+}
+
+function matchesFilters(n){
+  if(state.filterSpecial==="archive") return n.archived;
+  if(n.archived) return false;
+  if(state.filterSpecial==="favorite") return n.favorite;
+  if(state.filterFolder) return n.folderId===state.filterFolder;
+  if(state.filterTag) return n.tags.includes(state.filterTag);
+  return true;
+}
+function matchesSearch(n){
+  const q = state.search.trim().toLowerCase();
+  if(!q) return true;
+  const words = q.split(/\s+/);
+  const hay = (n.title+" "+n.content+" "+n.tags.join(" ")).toLowerCase();
+  return words.every(w=>hay.includes(w));
+}
+
+function renderList(){
+  const el = document.getElementById("listPane");
+  const notes = DB.notes.filter(matchesFilters).filter(matchesSearch)
+    .sort((a,b)=> new Date(b.updatedAt)-new Date(a.updatedAt));
+
+  let html = `<div class="list-header">
+      <h1>${escHtml(currentFilterLabel())}</h1>
+      <span class="sub">${notes.length} catatan</span>
+    </div>`;
+
+  if(notes.length===0){
+    html += `<div class="empty-state">
+      <div class="glyph">◌</div>
+      <div>Belum ada catatan di sini.<br>Tulis yang pertama.</div>
+    </div>`;
+  } else {
+    notes.forEach(n=>{
+      const snip = (n.content||"").replace(/[#*`>-]/g," ").replace(/\[\[([^\]]+)\]\]/g,"$1").slice(0,140);
+      html += `<div class="note-row" data-open="${n.id}">
+        <button class="star ${n.favorite?'on':''}" data-star="${n.id}" aria-label="Favorit">${n.favorite?'★':'☆'}</button>
+        <div class="note-main">
+          <div class="note-title-row"><span class="note-title">${escHtml(n.title||"(tanpa judul)")}</span></div>
+          <div class="note-path">${escHtml(folderPathStr(n.folderId))}</div>
+          <div class="note-snip">${escHtml(snip)}</div>
+          ${n.tags.length?`<div class="note-tags">${n.tags.map(t=>`<span class="tag-chip">#${escHtml(t)}</span>`).join("")}</div>`:""}
+        </div>
+        <div class="note-date">${fmtDate(n.updatedAt)}</div>
+      </div>`;
     });
+  }
+  el.innerHTML = html;
 
-    window.addEventListener('resize', () => { renderFolders(); });
+  el.querySelectorAll("[data-open]").forEach(n=> n.addEventListener("click",(e)=>{
+    if(e.target.closest("[data-star]")) return;
+    openNote(n.getAttribute("data-open"));
+  }));
+  el.querySelectorAll("[data-star]").forEach(n=> n.addEventListener("click",(e)=>{
+    e.stopPropagation();
+    const note = noteById(n.getAttribute("data-star"));
+    note.favorite = !note.favorite; note.updatedAt = now();
+    saveNow(); renderList(); renderSidebar();
+  }));
+}
 
-    document.getElementById('inputModalField').addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') { e.preventDefault(); confirmInputModal(); }
+/* ============ RENDER: EDITOR ============ */
+function openNote(id){
+  state.activeNoteId = id;
+  state.route = "editor";
+  closeDrawer();
+  render();
+}
+function createNote(){
+  const n = {
+    id:uid(), title:"Catatan baru", folderId: state.filterFolder || null,
+    tags: state.filterTag ? [state.filterTag] : [],
+    favorite:false, archived:false, createdAt:now(), updatedAt:now(), content:""
+  };
+  DB.notes.unshift(n);
+  saveNow();
+  openNote(n.id);
+}
+async function deleteNote(id){
+  const ok = await showConfirm({
+    title:"Hapus catatan ini?",
+    message:"Tindakan ini tidak bisa dibatalkan.",
+    confirmText:"Hapus", cancelText:"Batal", danger:true
+  });
+  if(!ok) return;
+  DB.notes = DB.notes.filter(n=>n.id!==id);
+  await saveNow();
+  state.route="list"; state.activeNoteId=null;
+  render();
+  showToast("Catatan dihapus");
+}
+
+function folderOptionsHtml(selectedId){
+  let out = `<option value="">— tanpa folder —</option>`;
+  allFolders().forEach(({folder,path})=>{
+    out += `<option value="${folder.id}" ${folder.id===selectedId?'selected':''}>${escHtml(path.join(" / "))}</option>`;
+  });
+  return out;
+}
+
+function renderEditor(){
+  const note = noteById(state.activeNoteId);
+  const el = document.getElementById("editorPane");
+  if(!note){ state.route="list"; render(); return; }
+
+  el.innerHTML = `
+    <div class="editor-toolbar">
+      <button class="tb-btn" data-ins="bold" title="Tebal">B</button>
+      <button class="tb-btn" data-ins="italic" title="Miring"><i>i</i></button>
+      <button class="tb-btn" data-ins="h2" title="Judul">H</button>
+      <button class="tb-btn" data-ins="code" title="Blok kode">&lt;/&gt;</button>
+      <button class="tb-btn" data-ins="check" title="Checklist">☑</button>
+      <button class="tb-btn" data-ins="image" title="Gambar">🖼</button>
+      <button class="tb-btn" data-ins="attach" title="Lampiran/tautan">📎</button>
+      <button class="tb-btn" data-ins="wikilink" title="Tautan ke catatan lain">[[ ]]</button>
+      <button class="tb-btn mobile-only" id="btnLinksMobile">🔗 Tautan</button>
+      <div class="tb-sep"></div>
+      <div class="tb-mode">
+        <button data-mode="edit-only" class="${state.editorMode==='edit-only'?'active':''}">Tulis</button>
+        <button data-mode="split" class="${state.editorMode==='split'?'active':''}">Split</button>
+        <button data-mode="preview-only" class="${state.editorMode==='preview-only'?'active':''}">Baca</button>
+      </div>
+      <div class="tb-spacer"></div>
+      <button class="tb-btn" id="btnDelete" style="color:var(--danger);border-color:var(--danger)">Hapus</button>
+      <button class="tb-btn" id="btnCloseEditor">Tutup</button>
+    </div>
+    <div class="editor-meta">
+      <input class="title-input" id="titleInput" value="${escAttr(note.title)}" placeholder="Judul catatan">
+      <div class="meta-row">
+        <div class="meta-field">📁 <select id="folderSelect">${folderOptionsHtml(note.folderId)}</select></div>
+        <div class="meta-field">🏷 <input class="tags-input" id="tagsInput" value="${escAttr(note.tags.join(', '))}" placeholder="tag1, tag2, tag3"></div>
+        <button class="meta-toggle ${note.favorite?'on':''}" id="toggleFav">★ Favorit</button>
+        <button class="meta-toggle danger ${note.archived?'on':''}" id="toggleArch">▤ Arsip</button>
+        <div class="meta-field" style="margin-left:auto">diperbarui ${fmtDate(note.updatedAt)}</div>
+      </div>
+    </div>
+    <div class="editor-body ${state.editorMode==='edit-only'?'edit-only':state.editorMode==='preview-only'?'preview-only':''}" id="editorBody">
+      <div class="src"><textarea class="src-area" id="contentArea" placeholder="Tulis dengan Markdown… gunakan [[Judul Catatan]] untuk menautkan.">${escHtml(note.content)}</textarea></div>
+      <div class="prev" id="previewArea"></div>
+    </div>
+  `;
+
+  updatePreview(note.content);
+
+  const titleInput = document.getElementById("titleInput");
+  const folderSelect = document.getElementById("folderSelect");
+  const tagsInput = document.getElementById("tagsInput");
+  const contentArea = document.getElementById("contentArea");
+
+  let debounceTimer = null;
+  function scheduleSave(){
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(()=>{
+      note.title = titleInput.value.trim() || "(tanpa judul)";
+      note.folderId = folderSelect.value || null;
+      note.tags = tagsInput.value.split(",").map(s=>s.trim()).filter(Boolean);
+      note.content = contentArea.value;
+      note.updatedAt = now();
+      saveNow();
+      renderSidebar();
+      renderContextPanel();
+    }, 350);
+  }
+  titleInput.addEventListener("input", scheduleSave);
+  folderSelect.addEventListener("change", scheduleSave);
+  tagsInput.addEventListener("input", scheduleSave);
+  contentArea.addEventListener("input", ()=>{ updatePreview(contentArea.value); scheduleSave(); });
+
+  document.getElementById("toggleFav").addEventListener("click", ()=>{
+    note.favorite = !note.favorite; note.updatedAt=now(); saveNow(); renderEditor();
+  });
+  document.getElementById("toggleArch").addEventListener("click", ()=>{
+    note.archived = !note.archived; note.updatedAt=now(); saveNow(); renderEditor();
+    showToast(note.archived ? "Catatan diarsipkan" : "Catatan dikembalikan dari arsip");
+  });
+  document.getElementById("btnDelete").addEventListener("click", ()=> deleteNote(note.id));
+  document.getElementById("btnCloseEditor").addEventListener("click", ()=>{
+    state.route="list"; state.activeNoteId=null; render();
+  });
+  document.getElementById("btnLinksMobile").addEventListener("click", ()=> showLinksSheet(note));
+  el.querySelectorAll("[data-mode]").forEach(b=> b.addEventListener("click", ()=>{
+    state.editorMode = b.getAttribute("data-mode");
+    renderEditor();
+  }));
+  el.querySelectorAll("[data-ins]").forEach(b=> b.addEventListener("click", ()=>{
+    insertMarkdown(contentArea, b.getAttribute("data-ins"));
+    updatePreview(contentArea.value);
+    scheduleSave();
+  }));
+}
+
+function insertMarkdown(textarea, kind){
+  const start = textarea.selectionStart, end = textarea.selectionEnd;
+  const val = textarea.value;
+  const sel = val.slice(start,end);
+  let before="", after="", placeholder="";
+  switch(kind){
+    case "bold": before="**"; after="**"; placeholder="teks tebal"; break;
+    case "italic": before="_"; after="_"; placeholder="teks miring"; break;
+    case "h2": before="\n## "; after=""; placeholder="Judul bagian"; break;
+    case "code": before="\n```\n"; after="\n```\n"; placeholder="kode di sini"; break;
+    case "check": before="\n- [ ] "; after=""; placeholder="tugas baru"; break;
+    case "image": before="\n![alt teks]("; after=")"; placeholder="https://url-gambar.jpg"; break;
+    case "attach": before="\n[nama lampiran]("; after=")"; placeholder="https://tautan-atau-file"; break;
+    case "wikilink": before="[["; after="]]"; placeholder="Judul Catatan Lain"; break;
+  }
+  const text = sel || placeholder;
+  const newVal = val.slice(0,start) + before + text + after + val.slice(end);
+  textarea.value = newVal;
+  const cursor = start + before.length + text.length;
+  textarea.focus();
+  textarea.setSelectionRange(cursor, cursor);
+}
+
+function updatePreview(md){
+  const prev = document.getElementById("previewArea");
+  if(!prev) return;
+  let html;
+  try{
+    const withLinks = (md||"").replace(/\[\[([^\]]+)\]\]/g, (m,t)=>{
+      const target = DB.notes.find(n=>n.title.toLowerCase()===t.trim().toLowerCase());
+      return `[${t}](#wikilink:${target?target.id:''})`;
     });
+    html = window.marked ? marked.parse(withLinks) : escHtml(md);
+  }catch(e){ html = escHtml(md); }
+  prev.innerHTML = html || `<p style="color:var(--text-dim)">Belum ada isi. Mulai menulis di panel kiri.</p>`;
+  prev.querySelectorAll('a[href^="#wikilink:"]').forEach(a=>{
+    a.addEventListener("click",(e)=>{
+      e.preventDefault();
+      const id = a.getAttribute("href").split(":")[1];
+      if(id) openNote(id);
+      else showAlert({
+        title:"Catatan belum ada",
+        message:`Belum ada catatan berjudul "${a.textContent}". Buat catatan baru dengan judul tersebut untuk menautkannya.`
+      });
+    });
+  });
+}
 
-    document.querySelectorAll('.modal-overlay').forEach(ov => {
-      ov.addEventListener('click', (e) => { if (e.target === ov) {
-        if (ov.id === 'modalOverlay') closeModal();
-        if (ov.id === 'readOverlay') closeReadModal();
-        if (ov.id === 'inputModalOverlay') closeInputModal();
-      }});
+/* ============ RENDER: CONTEXT PANEL (backlinks) ============ */
+function renderContextPanel(){
+  const el = document.getElementById("ctxPanel");
+  if(!el) return;
+  const note = state.route==="editor" ? noteById(state.activeNoteId) : null;
+  if(!note){
+    el.innerHTML = `<div class="ctx-title">TAUTAN</div><div class="ctx-empty">Buka sebuah catatan untuk melihat tautan masuk &amp; keluar.</div>`;
+    return;
+  }
+  const outs = outgoingLinks(note);
+  const backs = backlinksTo(note);
+  let html = `<div class="ctx-block">
+    <div class="ctx-title">TERTAUT KE (${outs.length})</div>`;
+  html += outs.length ? outs.map(o=>`<div class="link-row" data-goto="${o.id}"><span class="arrow">→</span>${escHtml(o.title)}</div>`).join("")
+    : `<div class="ctx-empty">Tidak ada tautan keluar. Pakai [[Judul]] di isi catatan.</div>`;
+  html += `</div><div class="ctx-block">
+    <div class="ctx-title">DISEBUT DARI (${backs.length})</div>`;
+  html += backs.length ? backs.map(o=>`<div class="link-row" data-goto="${o.id}"><span class="arrow">←</span>${escHtml(o.title)}</div>`).join("")
+    : `<div class="ctx-empty">Belum ada catatan lain yang menyebut ini.</div>`;
+  html += `</div>`;
+  el.innerHTML = html;
+  el.querySelectorAll("[data-goto]").forEach(n=> n.addEventListener("click", ()=> openNote(n.getAttribute("data-goto"))));
+}
+
+/* ============ RENDER: GRAPH ============ */
+function renderGraph(){
+  const wrap = document.getElementById("graphWrap");
+  const notes = DB.notes.filter(n=>!n.archived);
+  const idIndex = {}; notes.forEach((n,i)=> idIndex[n.id]=i);
+  const edges = [];
+  notes.forEach(n=>{
+    outgoingLinks(n).forEach(t=>{
+      if(idIndex[t.id]!==undefined) edges.push([idIndex[n.id], idIndex[t.id]]);
     });
   });
 
-  /* ---------- PERSISTENCE ---------- */
-  async function loadData() {
-    try {
-      const res = await window.storage.get(DATA_KEY, false);
-      if (res && res.value) {
-        const parsed = JSON.parse(res.value);
-        notes = parsed.notes || [];
-        if (Array.isArray(parsed.folders) && parsed.folders.length) folders = parsed.folders;
-        folderSubbabs = parsed.folderSubbabs || {};
+  if(notes.length===0){
+    wrap.innerHTML = `<div class="empty-state" style="padding-top:80px"><div class="glyph">◌</div><div>Belum ada catatan untuk dipetakan.</div></div>`;
+    return;
+  }
+
+  const W = wrap.clientWidth || 900, H = wrap.clientHeight || 600;
+  const nodes = notes.map((n,i)=>({
+    id:n.id, title:n.title, favorite:n.favorite,
+    x: W/2 + Math.cos(i*2.4)* (80+ i*7),
+    y: H/2 + Math.sin(i*2.4)* (80+ i*7),
+    vx:0, vy:0
+  }));
+
+  for(let iter=0; iter<220; iter++){
+    for(let i=0;i<nodes.length;i++){
+      for(let j=i+1;j<nodes.length;j++){
+        let dx = nodes[j].x-nodes[i].x, dy = nodes[j].y-nodes[i].y;
+        let dist = Math.sqrt(dx*dx+dy*dy)||1;
+        const rep = 1800/(dist*dist);
+        const fx = (dx/dist)*rep, fy=(dy/dist)*rep;
+        nodes[i].vx -= fx; nodes[i].vy -= fy;
+        nodes[j].vx += fx; nodes[j].vy += fy;
       }
-    } catch (e) { /* belum ada data tersimpan */ }
-
-    const customFoldersFromNotes = [...new Set(notes.map(n => n.folder))];
-    customFoldersFromNotes.forEach(f => { if (f && !folders.includes(f)) folders.push(f); });
-
-    notes.forEach(n => {
-      if (n.subbab) {
-        if (!folderSubbabs[n.folder]) folderSubbabs[n.folder] = [];
-        if (!folderSubbabs[n.folder].includes(n.subbab)) folderSubbabs[n.folder].push(n.subbab);
-      }
-    });
-  }
-
-  async function persist() {
-    setStorageStatus('⏳ Menyimpan...');
-    try {
-      const result = await window.storage.set(DATA_KEY, JSON.stringify({ notes, folders, folderSubbabs }), false);
-      setStorageStatus(result ? '✓ Tersimpan' : '⚠ Gagal simpan');
-    } catch (e) { setStorageStatus('⚠ Gagal simpan'); console.error('Storage error:', e); }
-  }
-
-  function save() { render(); persist(); }
-
-  /* ---------- SHEETS / MENUS ---------- */
-  function toggleProfileMenu(e) {
-    e.stopPropagation();
-    const menu = document.getElementById('profileDropdown');
-    const backdrop = document.getElementById('sheetBackdrop');
-    const willShow = !menu.classList.contains('show');
-    menu.classList.toggle('show', willShow);
-    if (isMobile()) backdrop.classList.toggle('show', willShow);
-  }
-  function closeAllSheets() { document.getElementById('profileDropdown').classList.remove('show'); document.getElementById('sheetBackdrop').classList.remove('show'); }
-
-  function openNoteMenu(e, id) {
-    e.stopPropagation();
-    noteMenuTargetId = id;
-    const menu = document.getElementById('noteActionMenu');
-    const rect = e.currentTarget.getBoundingClientRect();
-    menu.style.display = 'flex'; // measure first
-    const menuWidth = menu.offsetWidth || 170;
-    let left = rect.right - menuWidth;
-    if (left < 8) left = 8;
-    let top = rect.bottom + 6;
-    if (top + 180 > window.innerHeight) top = rect.top - 180;
-    menu.style.left = left + 'px';
-    menu.style.top = top + 'px';
-    menu.classList.add('show');
-  }
-  function closeNoteMenu() { const m = document.getElementById('noteActionMenu'); m.classList.remove('show'); noteMenuTargetId = null; }
-  function noteMenuAction(action) {
-    const id = noteMenuTargetId;
-    closeNoteMenu();
-    if (!id) return;
-    if (action === 'view') openReadModal(id);
-    if (action === 'edit') editNote(id);
-    if (action === 'download') exportSingleNotePDF(id);
-    if (action === 'delete') deleteNote(id);
-  }
-
-  /* ---------- FOLDERS ---------- */
-  function renderFolders() {
-    const container = document.getElementById('foldersContainer');
-    const select = document.getElementById('folderSelect');
-    const prevBtn = document.getElementById('btnPrevFolder');
-    const nextBtn = document.getElementById('btnNextFolder');
-
-    const foldersPerPage = getFoldersPerPage();
-    const totalPages = Math.ceil(folders.length / foldersPerPage) || 1;
-
-    if (folderCurrentPage < 0) folderCurrentPage = 0;
-    if (folderCurrentPage >= totalPages) folderCurrentPage = totalPages - 1;
-
-    prevBtn.disabled = (folderCurrentPage === 0) || isMobile();
-    nextBtn.disabled = (folderCurrentPage >= totalPages - 1) || isMobile();
-
-    const startIndex = isMobile() ? 0 : folderCurrentPage * foldersPerPage;
-    const visibleFolders = isMobile() ? folders : folders.slice(startIndex, startIndex + foldersPerPage);
-    container.style.setProperty('--folder-cols', Math.min(6, visibleFolders.length + 1));
-
-    let folderHTML = '';
-    visibleFolders.forEach((f) => {
-      const count = f === 'All Notes' ? notes.length : notes.filter(n => n.folder === f).length;
-      const isDefaultFolder = (f === 'All Notes');
-      const theme = isDefaultFolder ? { bg: '#efe8d8', text: '#211d17' } : themeFor(f);
-      const icon = isDefaultFolder ? '▤' : iconFor(f);
-      const deleteBtnHtml = isDefaultFolder ? '' : `<button class="btn-delete-folder" title="Hapus Folder" onclick="deleteFolder(event, '${jsEscape(f)}')">✖</button>`;
-      const activeClass = activeFolder === f ? 'active' : '';
-      const iconStyle = activeClass ? `border-color: var(--paper-raised); color: var(--paper-raised);` : `background:${theme.bg};color:${theme.text};border-color:${theme.text}`;
-
-      folderHTML += `
-        <div class="folder-card ${activeClass}" onclick="selectFolder('${jsEscape(f)}')">
-          <div class="folder-top">
-            <div class="folder-icon" style="${iconStyle}">${icon}</div>
-            ${deleteBtnHtml}
-          </div>
-          <div>
-            <div class="folder-name">${escapeHtml(f)}</div>
-            <div class="folder-count">${count} notes</div>
-          </div>
-        </div>
-      `;
-    });
-
-    folderHTML += `
-      <div class="folder-card folder-add-btn" onclick="addCustomFolder()">
-        <div style="font-size: 18px; font-weight: bold;">+</div>
-        <div class="folder-name">New Folder</div>
-      </div>
-    `;
-
-    container.innerHTML = folderHTML;
-
-    const availableFoldersForSelect = folders.filter(f => f !== 'All Notes');
-    select.innerHTML = availableFoldersForSelect.map(f => `<option value="${escapeHtml(f)}" ${f === activeFolder ? 'selected' : ''}>${escapeHtml(f)}</option>`).join('');
-  }
-
-  function changeFolderPage(dir) { folderCurrentPage += dir; renderFolders(); }
-  function selectFolder(fName) { activeFolder = fName; activeSubbab = 'All'; render(); }
-
-  /* ---------- SIDEBAR FOLDER NAV (desktop) ---------- */
-  function toggleSidebarFolders() {
-    sidebarFoldersCollapsed = !sidebarFoldersCollapsed;
-    document.getElementById('sidebarCaret').innerText = sidebarFoldersCollapsed ? '+' : '−';
-    document.getElementById('sidebarFolderList').classList.toggle('collapsed', sidebarFoldersCollapsed);
-  }
-
-  function renderSidebarFolders() {
-    const list = document.getElementById('sidebarFolderList');
-    let html = '';
-    folders.forEach((f) => {
-      const isDefaultFolder = (f === 'All Notes');
-      const isActive = activeFolder === f;
-      const folderNotes = isDefaultFolder ? notes : notes.filter(n => n.folder === f);
-      const count = folderNotes.length;
-      const hash = isDefaultFolder ? '▤' : '#';
-      const delBtn = isDefaultFolder ? '' : `<button class="channel-del" title="Hapus folder" onclick="event.stopPropagation(); deleteFolder(event, '${jsEscape(f)}')">✖</button>`;
-      html += `
-        <li class="channel-item ${isActive ? 'active' : ''}" onclick="selectFolder('${jsEscape(f)}')">
-          <span class="channel-hash">${hash}</span>
-          <span class="channel-name">${escapeHtml(f)}</span>
-          ${count > 0 ? `<span class="channel-badge">${count}</span>` : ''}
-          ${delBtn}
-        </li>
-      `;
-      // When this folder is the active one, list its notes nested right underneath it.
-      if (isActive) {
-        html += `<ul class="channel-notes">`;
-        if (folderNotes.length === 0) {
-          html += `<li class="channel-note-item empty">Belum ada catatan</li>`;
-        } else {
-          folderNotes.slice(0, 8).forEach(n => {
-            html += `<li class="channel-note-item" title="${escapeHtml(n.question)}" onclick="event.stopPropagation(); openReadModal(${n.id})">${escapeHtml(n.question)}</li>`;
-          });
-          if (folderNotes.length > 8) {
-            html += `<li class="channel-note-item empty">+${folderNotes.length - 8} lainnya</li>`;
-          }
-        }
-        html += `<li class="channel-note-item add" onclick="event.stopPropagation(); openModal()">+ Catatan baru</li>`;
-        html += `</ul>`;
-      }
-    });
-    html += `<li class="channel-add" onclick="addCustomFolder()"><span class="channel-hash">+</span><span class="channel-name">Add folder</span></li>`;
-    list.innerHTML = html;
-  }
-
-  function addCustomFolder() {
-    openInputModal('Tambah Folder Baru', 'Nama folder / kategori...', (val) => {
-      if (!folders.includes(val)) folders.push(val);
-      activeFolder = val;
-      activeSubbab = 'All';
-      const foldersPerPage = getFoldersPerPage();
-      folderCurrentPage = Math.floor((folders.length - 1) / foldersPerPage);
-      save();
-    });
-  }
-
-  function deleteFolder(event, folderName) {
-    event.stopPropagation();
-    if (folderName === 'All Notes') return;
-    const notesInFolder = notes.filter(n => n.folder === folderName).length;
-    let confirmMsg = `Yakin ingin menghapus folder "${folderName}"?`;
-    if (notesInFolder > 0) confirmMsg += `\n\nAda ${notesInFolder} catatan di folder ini. Catatan akan dipindahkan ke folder 'General'.`;
-    if (confirm(confirmMsg)) {
-      folders = folders.filter(f => f !== folderName);
-      delete folderSubbabs[folderName];
-      notes.forEach(n => { if (n.folder === folderName) { n.folder = 'General'; n.subbab = ''; } });
-      if (notes.some(n => n.folder === 'General') && !folders.includes('General')) folders.push('General');
-      if (activeFolder === folderName) { activeFolder = 'All Notes'; activeSubbab = 'All'; }
-      save();
     }
-  }
-
-  /* ---------- SUB BAB ---------- */
-  function renderSubbabSection() {
-    const container = document.getElementById('subbabSectionContainer');
-    if (activeFolder === 'All Notes') { container.style.display = 'none'; container.innerHTML = ''; return; }
-    container.style.display = 'block';
-
-    const subList = folderSubbabs[activeFolder] || [];
-    const allCount = notes.filter(n => n.folder === activeFolder).length;
-
-    let pillsHTML = `<div class="subbab-pill ${activeSubbab === 'All' ? 'active' : ''}" onclick="selectSubbab('All')"><span>Semua</span><span class="pill-count">${allCount}</span></div>`;
-    subList.forEach(s => {
-      const count = notes.filter(n => n.folder === activeFolder && (n.subbab || '') === s).length;
-      pillsHTML += `
-        <div class="subbab-pill ${activeSubbab === s ? 'active' : ''}" onclick="selectSubbab('${jsEscape(s)}')">
-          <span>${escapeHtml(s)}</span>
-          <span class="pill-count">${count}</span>
-          <button class="pill-icon-btn" title="Unduh PDF sub bab ini" onclick="event.stopPropagation(); exportPDF('${jsEscape(activeFolder)}','${jsEscape(s)}')">⬇</button>
-          <button class="pill-icon-btn danger" title="Hapus sub bab" onclick="event.stopPropagation(); deleteSubbab('${jsEscape(activeFolder)}','${jsEscape(s)}')">✖</button>
-        </div>
-      `;
+    edges.forEach(([a,b])=>{
+      let dx = nodes[b].x-nodes[a].x, dy = nodes[b].y-nodes[a].y;
+      let dist = Math.sqrt(dx*dx+dy*dy)||1;
+      const target = 130;
+      const f = (dist-target)*0.02;
+      const fx = (dx/dist)*f, fy=(dy/dist)*f;
+      nodes[a].vx += fx; nodes[a].vy += fy;
+      nodes[b].vx -= fx; nodes[b].vy -= fy;
     });
-    pillsHTML += `<div class="subbab-pill add-pill" onclick="addSubbabPrompt()">+ Sub Bab</div>`;
-
-    container.innerHTML = `
-      <div class="subbab-header">
-        <h3>Sub Bab dalam "${escapeHtml(activeFolder)}"</h3>
-        <button class="btn-folder-download" onclick="exportPDF('${jsEscape(activeFolder)}','All')">⬇ Unduh PDF Folder Ini</button>
-      </div>
-      <div class="subbab-pills">${pillsHTML}</div>
-    `;
-  }
-
-  function addSubbabPrompt() {
-    openInputModal('Tambah Sub Bab Baru', `Nama sub bab untuk folder "${activeFolder}"...`, (val) => {
-      if (!folderSubbabs[activeFolder]) folderSubbabs[activeFolder] = [];
-      if (!folderSubbabs[activeFolder].includes(val)) folderSubbabs[activeFolder].push(val);
-      activeSubbab = val;
-      save();
+    nodes.forEach(n=>{
+      n.vx += (W/2 - n.x)*0.0015;
+      n.vy += (H/2 - n.y)*0.0015;
+      n.x += n.vx*0.6; n.y += n.vy*0.6;
+      n.vx*=0.82; n.vy*=0.82;
+      n.x = Math.max(40, Math.min(W-40, n.x));
+      n.y = Math.max(40, Math.min(H-40, n.y));
     });
   }
 
-  function selectSubbab(name) { activeSubbab = name; renderSubbabSection(); renderNotes(); }
+  let svg = `<svg viewBox="0 0 ${W} ${H}">`;
+  edges.forEach(([a,b])=>{
+    svg += `<line class="g-edge" x1="${nodes[a].x}" y1="${nodes[a].y}" x2="${nodes[b].x}" y2="${nodes[b].y}"/>`;
+  });
+  nodes.forEach((n,i)=>{
+    svg += `<g class="g-node ${n.favorite?'fav':''}" data-node="${i}" transform="translate(${n.x},${n.y})">
+      <circle r="7"></circle>
+      <text x="12" y="4">${escHtml(n.title.length>26?n.title.slice(0,26)+'…':n.title)}</text>
+    </g>`;
+  });
+  svg += `</svg>`;
+  wrap.innerHTML = svg + `<div class="graph-hint">${notes.length} catatan · ${edges.length} tautan — seret titik, klik/ketuk untuk membuka</div>`;
 
-  function deleteSubbab(folderName, subName) {
-    if (!confirm(`Hapus sub bab "${subName}"? Catatan di dalamnya akan dipindahkan ke "Tanpa Sub Bab".`)) return;
-    folderSubbabs[folderName] = (folderSubbabs[folderName] || []).filter(s => s !== subName);
-    notes.forEach(n => { if (n.folder === folderName && n.subbab === subName) n.subbab = ''; });
-    if (activeSubbab === subName) activeSubbab = 'All';
-    save();
+  const svgEl = wrap.querySelector("svg");
+  let dragging = null;
+  let dragMoved = false;
+
+  function pointFromEvent(e){
+    const rect = svgEl.getBoundingClientRect();
+    const scaleX = W/rect.width, scaleY = H/rect.height;
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    return { x:(clientX-rect.left)*scaleX, y:(clientY-rect.top)*scaleY };
   }
-
-  /* ---------- MODAL: Buat / Edit Catatan ---------- */
-  function refreshSubbabOptions(folderName, preselect) {
-    const subbabSelect = document.getElementById('subbabSelect');
-    const list = folderSubbabs[folderName] || [];
-    let html = `<option value="">Tanpa Sub Bab</option>`;
-    list.forEach(s => { html += `<option value="${escapeHtml(s)}" ${s === preselect ? 'selected' : ''}>${escapeHtml(s)}</option>`; });
-    html += `<option value="__new__">+ Tambah Sub Bab Baru...</option>`;
-    subbabSelect.innerHTML = html;
+  function startDrag(i, e){ dragging = i; dragMoved = false; if(e.cancelable) e.preventDefault(); }
+  function moveDrag(e){
+    if(dragging===null) return;
+    dragMoved = true;
+    const p = pointFromEvent(e);
+    nodes[dragging].x = p.x; nodes[dragging].y = p.y;
+    if(e.cancelable) e.preventDefault();
+    redrawGraphPositions();
   }
+  function endDrag(){ const wasDragging = dragging!==null; dragging=null; return wasDragging; }
 
-  function onModalFolderChange() { refreshSubbabOptions(document.getElementById('folderSelect').value, ''); }
+  svgEl.querySelectorAll("[data-node]").forEach(g=>{
+    const i = +g.getAttribute("data-node");
+    g.addEventListener("mousedown",(e)=> startDrag(i,e));
+    g.addEventListener("touchstart",(e)=> startDrag(i,e), {passive:false});
+    g.addEventListener("click",()=>{ if(!dragMoved) openNote(nodes[i].id); });
+  });
+  svgEl.addEventListener("mousemove", moveDrag);
+  svgEl.addEventListener("touchmove", moveDrag, {passive:false});
+  window.addEventListener("mouseup",()=>{ endDrag(); setTimeout(()=>dragMoved=false,0); });
+  window.addEventListener("touchend",()=>{
+    const wasDragging = endDrag();
+    if(wasDragging) setTimeout(()=>dragMoved=false,0);
+  });
 
-  function onModalSubbabChange() {
-    const subbabSelect = document.getElementById('subbabSelect');
-    if (subbabSelect.value === '__new__') {
-      const folderName = document.getElementById('folderSelect').value;
-      openInputModal('Tambah Sub Bab Baru', `Nama sub bab untuk folder "${folderName}"...`, (val) => {
-        if (!folderSubbabs[folderName]) folderSubbabs[folderName] = [];
-        if (!folderSubbabs[folderName].includes(val)) folderSubbabs[folderName].push(val);
-        persist();
-        refreshSubbabOptions(folderName, val);
-      });
-      subbabSelect.value = '';
-    }
-  }
-
-  function openModal() {
-    editingId = null;
-    document.getElementById('modalTitleLabel').innerText = 'Catatan Baru';
-    document.getElementById('qInput').value = '';
-    document.getElementById('editor').innerHTML = '';
-
-    const select = document.getElementById('folderSelect');
-    let defaultFolder;
-    if (activeFolder !== 'All Notes') { select.value = activeFolder; defaultFolder = activeFolder; }
-    else if (select.options.length > 0) { select.selectedIndex = 0; defaultFolder = select.value; }
-
-    const defaultSubbab = (activeFolder !== 'All Notes' && activeSubbab !== 'All') ? activeSubbab : '';
-    refreshSubbabOptions(defaultFolder, defaultSubbab);
-
-    document.getElementById('modalOverlay').classList.add('active');
-    if (!isMobile()) document.getElementById('qInput').focus();
-  }
-
-  function editNote(id) {
-    const n = notes.find(item => item.id === id);
-    if (!n) return;
-    closeReadModal();
-    editingId = id;
-    document.getElementById('modalTitleLabel').innerText = 'Edit Catatan';
-    document.getElementById('qInput').value = n.question;
-    document.getElementById('editor').innerHTML = n.answer;
-    document.getElementById('folderSelect').value = n.folder;
-    refreshSubbabOptions(n.folder, n.subbab || '');
-    document.getElementById('modalOverlay').classList.add('active');
-  }
-
-  function closeModal() { document.getElementById('modalOverlay').classList.remove('active'); editingId = null; }
-  function execCmd(cmd) { document.execCommand(cmd, false, null); document.getElementById('editor').focus(); }
-
-  function saveNote() {
-    const q = document.getElementById('qInput').value.trim();
-    const content = document.getElementById('editor').innerHTML.trim();
-    let f = document.getElementById('folderSelect').value;
-    if (!f) f = 'General';
-    let sb = document.getElementById('subbabSelect').value;
-    if (sb === '__new__') sb = '';
-    if (!q) { alert('Pertanyaan / judul tidak boleh kosong!'); return; }
-
-    if (editingId) {
-      const n = notes.find(item => item.id === editingId);
-      if (n) { n.question = q; n.answer = content; n.folder = f; n.subbab = sb; }
-    } else {
-      notes.unshift({ id: Date.now(), question: q, answer: content, folder: f, subbab: sb, date: new Date().toLocaleDateString('en-GB') });
-    }
-    closeModal();
-    save();
-  }
-
-  /* ---------- MODAL: baca catatan ---------- */
-  function openReadModal(id) {
-    const n = notes.find(item => item.id === id);
-    if (!n) return;
-    readingId = id;
-    const theme = themeFor(n.folder);
-    const icon = iconFor(n.folder);
-
-    const content = document.getElementById('readPageContent');
-    content.innerHTML = `
-      <div class="read-close-row"><span class="close-x" onclick="closeReadModal()">&times;</span></div>
-      <div class="read-header" style="background:${theme.bg};color:${theme.text}">
-        <div class="read-icon" style="border-color:${theme.text}">${icon}</div>
-        <div>
-          <div class="read-folder-name">${escapeHtml(n.folder)}${n.subbab ? ' • ' + escapeHtml(n.subbab) : ''}</div>
-          <div class="read-date">${escapeHtml(n.date)}</div>
-        </div>
-      </div>
-      <div class="read-body">
-        <div class="read-q">${escapeHtml(n.question)}</div>
-        <div class="read-answer">${n.answer || ''}</div>
-        <div class="read-meta">ID: ${n.id.toString().slice(-4)}</div>
-      </div>
-    `;
-
-    document.getElementById('readEditBtn').onclick = () => editNote(id);
-    document.getElementById('readDeleteBtn').onclick = () => { closeReadModal(); deleteNote(id); };
-    document.getElementById('readDownloadBtn').onclick = () => exportSingleNotePDF(id);
-    document.getElementById('readOverlay').classList.add('active');
-  }
-
-  function closeReadModal() { document.getElementById('readOverlay').classList.remove('active'); readingId = null; }
-
-  /* ---------- MODAL INPUT GENERIK ---------- */
-  function openInputModal(title, placeholder, callback) {
-    document.getElementById('inputModalTitleLabel').innerText = title;
-    const field = document.getElementById('inputModalField');
-    field.placeholder = placeholder;
-    field.value = '';
-    inputModalCallback = callback;
-    document.getElementById('inputModalOverlay').classList.add('active');
-    if (!isMobile()) setTimeout(() => field.focus(), 50);
-  }
-  function closeInputModal() { document.getElementById('inputModalOverlay').classList.remove('active'); inputModalCallback = null; }
-  function confirmInputModal() {
-    const field = document.getElementById('inputModalField');
-    const val = field.value.trim();
-    if (!val) { alert('Nama tidak boleh kosong!'); return; }
-    const cb = inputModalCallback;
-    closeInputModal();
-    if (cb) cb(val);
-  }
-
-  /* ---------- NOTES LIST ---------- */
-  function renderNotes() {
-    const grid = document.getElementById('notesGrid');
-    const title = document.getElementById('notesTitle');
-    const search = document.getElementById('searchInput').value.toLowerCase();
-
-    let titleText = activeFolder === 'All Notes' ? 'Semua Catatan' : `Catatan: ${activeFolder}`;
-    if (activeFolder !== 'All Notes' && activeSubbab !== 'All') titleText += ` — ${activeSubbab}`;
-    title.innerText = titleText;
-    grid.innerHTML = '';
-
-    let list = activeFolder === 'All Notes' ? notes.slice() : notes.filter(n => n.folder === activeFolder);
-    if (activeFolder !== 'All Notes' && activeSubbab !== 'All') list = list.filter(n => (n.subbab || '') === activeSubbab);
-    if (search) list = list.filter(n => n.question.toLowerCase().includes(search) || stripHtml(n.answer).toLowerCase().includes(search));
-
-    if (!dataLoaded) { grid.innerHTML = '<div class="empty-state">Memuat catatan...</div>'; return; }
-    if (list.length === 0) { grid.innerHTML = '<div class="empty-state">Belum ada catatan di sini.<br>Ketuk "Buat Catatan Baru" untuk mulai menulis.</div>'; return; }
-
-    list.forEach((n) => {
-      const theme = themeFor(n.folder);
-      const icon = iconFor(n.folder);
-      const el = document.createElement('div');
-      el.className = 'note-card';
-      el.onclick = () => openReadModal(n.id);
-      const previewText = stripHtml(n.answer || '');
-      const metaLine = `${escapeHtml(n.folder)} • ${escapeHtml(n.date)}`;
-
-      el.innerHTML = `
-        <div class="card-desktop">
-          <div class="note-card-topbar" style="background:${theme.bg};color:${theme.text}">
-            <div class="note-card-icon" style="border-color:${theme.text}">${icon}</div>
-            <div class="note-card-folder-name">${escapeHtml(n.folder)}${n.subbab ? ' • ' + escapeHtml(n.subbab) : ''}</div>
-            <button class="note-menu-btn" onclick="openNoteMenu(event, ${n.id})">⋯</button>
-          </div>
-          <div class="note-card-body">
-            <div class="note-title">${escapeHtml(n.question)}</div>
-            <div class="note-preview ${previewText ? '' : 'is-empty'}">${escapeHtml(previewText)}</div>
-            <div class="note-card-foot"><span>${escapeHtml(n.date)}</span><span>ID ${n.id.toString().slice(-4)}</span></div>
-          </div>
-        </div>
-        <div class="card-mobile">
-          <div class="mobile-icon" style="background:${theme.bg};color:${theme.text};border-color:${theme.text}">${icon}</div>
-          <div class="mobile-text">
-            <div class="mobile-title">${escapeHtml(n.question)}</div>
-            <div class="mobile-meta">${metaLine}</div>
-          </div>
-          <button class="note-menu-btn" onclick="openNoteMenu(event, ${n.id})">⋯</button>
-        </div>
-      `;
-      grid.appendChild(el);
+  function redrawGraphPositions(){
+    edges.forEach(([a,b],idx)=>{
+      const line = svgEl.querySelectorAll(".g-edge")[idx];
+      line.setAttribute("x1",nodes[a].x); line.setAttribute("y1",nodes[a].y);
+      line.setAttribute("x2",nodes[b].x); line.setAttribute("y2",nodes[b].y);
+    });
+    nodes.forEach((n,i)=>{
+      svgEl.querySelector(`[data-node="${i}"]`).setAttribute("transform",`translate(${n.x},${n.y})`);
     });
   }
+}
 
-  function deleteNote(id) { if (confirm('Hapus catatan ini?')) { notes = notes.filter(n => n.id !== id); save(); } }
-  function render() { renderFolders(); renderSidebarFolders(); renderSubbabSection(); renderNotes(); }
-
-  function escapeHtml(str) { return (str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
-  function jsEscape(str) { return (str || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'"); }
-  function stripHtml(html) { const tmp = document.createElement('div'); tmp.innerHTML = html || ''; return tmp.textContent || tmp.innerText || ''; }
-
-  /* ---------- EXPORT / IMPORT ---------- */
-  function exportSingleNotePDF(id) {
-    const n = notes.find(item => item.id === id);
-    if (!n) return;
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    const marginX = 20;
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const pageHeight = doc.internal.pageSize.getHeight();
-    const contentWidth = pageWidth - marginX * 2;
-    let y = 22;
-
-    doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.setTextColor(33, 29, 23);
-    doc.text('MINO NOTES', marginX, y);
-    doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(120);
-    doc.text(n.date, pageWidth - marginX, y, { align: 'right' });
-    doc.setTextColor(0); y += 5;
-    doc.setDrawColor(33, 29, 23); doc.setLineWidth(0.6); doc.line(marginX, y, pageWidth - marginX, y); y += 10;
-
-    const breadcrumb = n.subbab ? `${n.folder}  /  ${n.subbab}` : n.folder;
-    doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(130);
-    doc.text(breadcrumb.toUpperCase(), marginX, y); doc.setTextColor(0); y += 9;
-
-    doc.setFont('helvetica', 'bold'); doc.setFontSize(16);
-    const qLines = doc.splitTextToSize(n.question, contentWidth);
-    doc.text(qLines, marginX, y); y += qLines.length * 7.5 + 4;
-
-    doc.setDrawColor(200); doc.setLineWidth(0.3); doc.line(marginX, y, pageWidth - marginX, y); y += 10;
-
-    doc.setFont('helvetica', 'normal'); doc.setFontSize(11.5); doc.setTextColor(30);
-    const answerText = stripHtml(n.answer) || '(Belum ada jawaban)';
-    const aLines = doc.splitTextToSize(answerText, contentWidth);
-    aLines.forEach(line => { if (y > pageHeight - 22) { doc.addPage(); y = 22; } doc.text(line, marginX, y); y += 6.2; });
-
-    const pageCount = doc.internal.getNumberOfPages();
-    for (let i = 1; i <= pageCount; i++) {
-      doc.setPage(i);
-      doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5); doc.setTextColor(150);
-      doc.text(`Mino Notes  •  ID ${n.id.toString().slice(-4)}  •  Halaman ${i} dari ${pageCount}`, pageWidth / 2, pageHeight - 10, { align: 'center' });
-      doc.setTextColor(0);
+/* ============ EXPORT / IMPORT ============ */
+function exportJson(){
+  const blob = new Blob([JSON.stringify(DB, null, 2)], {type:"application/json"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = "simpul-knowledge-base-"+new Date().toISOString().slice(0,10)+".json";
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast("Berkas JSON diunduh");
+}
+function importJson(file){
+  const reader = new FileReader();
+  reader.onload = async ()=>{
+    let parsed;
+    try{
+      parsed = JSON.parse(reader.result);
+      if(!parsed.notes || !parsed.folders) throw new Error("format tidak sesuai");
+    }catch(e){
+      await showAlert({title:"Gagal mengimpor", message:"Pastikan file berasal dari ekspor Simpul yang valid (.json)."});
+      return;
     }
-
-    const slug = n.question.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 40) || 'catatan';
-    doc.save(`${slug}_${n.id.toString().slice(-4)}.pdf`);
-  }
-
-  function exportPDF(folderName, subbabName) {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    let list = (!folderName || folderName === 'All Notes') ? notes.slice() : notes.filter(n => n.folder === folderName);
-    if (subbabName && subbabName !== 'All') list = list.filter(n => (n.subbab || '') === subbabName);
-    if (list.length === 0) { alert('Tidak ada catatan untuk diekspor.'); return; }
-
-    const marginX = 20;
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const pageHeight = doc.internal.pageSize.getHeight();
-    const contentWidth = pageWidth - marginX * 2;
-    let y = 25;
-
-    let mainTitle = (folderName && folderName !== 'All Notes') ? folderName : 'Semua Catatan';
-    if (subbabName && subbabName !== 'All') mainTitle += ' — ' + subbabName;
-
-    doc.setFont('times', 'bold'); doc.setFontSize(18); doc.text(mainTitle, marginX, y);
-    y += 6; doc.setDrawColor(210); doc.line(marginX, y, pageWidth - marginX, y); y += 12;
-
-    let grouped = {};
-    if (!subbabName || subbabName === 'All') {
-      list.forEach(n => { const key = n.subbab || 'Umum'; if (!grouped[key]) grouped[key] = []; grouped[key].push(n); });
-    } else { grouped[subbabName] = list; }
-
-    const groupKeys = Object.keys(grouped);
-    groupKeys.forEach(subKey => {
-      if (groupKeys.length > 1) {
-        if (y + 14 > pageHeight - 20) { doc.addPage(); y = 25; }
-        doc.setFont('times', 'bolditalic'); doc.setFontSize(13); doc.setTextColor(60);
-        doc.text(subKey, marginX, y); doc.setTextColor(0); y += 8;
-      }
-      grouped[subKey].forEach((n, idx) => {
-        doc.setFont('times', 'normal'); doc.setFontSize(11);
-        const qLines = doc.splitTextToSize(`${idx + 1}. ${n.question}`, contentWidth);
-        const aLines = doc.splitTextToSize(stripHtml(n.answer) || '(tidak ada isi)', contentWidth);
-        const blockHeight = qLines.length * 6 + 6 + aLines.length * 5.5 + 10;
-        if (y + blockHeight > pageHeight - 20) { doc.addPage(); y = 25; }
-        doc.setFont('times', 'bold'); doc.setFontSize(12); doc.text(qLines, marginX, y); y += qLines.length * 6;
-        doc.setFont('times', 'italic'); doc.setFontSize(9); doc.setTextColor(140);
-        doc.text(n.date, marginX, y); doc.setTextColor(0); y += 6;
-        doc.setFont('times', 'normal'); doc.setFontSize(11); doc.text(aLines, marginX, y); y += aLines.length * 5.5 + 8;
-        doc.setDrawColor(232); doc.line(marginX, y - 4, pageWidth - marginX, y - 4);
-      });
+    const ok = await showConfirm({
+      title:"Impor data?",
+      message:"Ini akan menggantikan semua data yang tersimpan sekarang. Pertimbangkan untuk mengekspor data saat ini dulu sebagai cadangan.",
+      confirmText:"Impor & ganti", cancelText:"Batal", danger:true
     });
+    if(!ok) return;
+    DB = parsed;
+    state.expandedFolders = new Set();
+    await persist(DB);
+    state.route="list"; state.activeNoteId=null; state.filterFolder=null; state.filterTag=null; state.filterSpecial=null;
+    render();
+    showToast("Data berhasil diimpor");
+  };
+  reader.readAsText(file);
+}
 
-    const pageCount = doc.internal.getNumberOfPages();
-    for (let i = 1; i <= pageCount; i++) {
-      doc.setPage(i);
-      doc.setFont('times', 'italic'); doc.setFontSize(9); doc.setTextColor(150);
-      doc.text(`Mino Notes • Halaman ${i} dari ${pageCount}`, pageWidth / 2, pageHeight - 10, { align: 'center' });
-      doc.setTextColor(0);
-    }
+/* ============ WIRE TOP BAR & BOTTOM NAV ============ */
+document.getElementById("searchInput").addEventListener("input", (e)=>{
+  state.search = e.target.value;
+  if(state.route!=="list"){ state.route="list"; state.activeNoteId=null; }
+  render();
+});
+document.getElementById("btnNew").addEventListener("click", createNote);
+document.getElementById("btnGraph").addEventListener("click", ()=>{
+  state.route = state.route==="graph" ? "list" : "graph";
+  render();
+});
+document.getElementById("btnExport").addEventListener("click", exportJson);
+document.getElementById("btnImport").addEventListener("click", ()=> document.getElementById("fileImport").click());
+document.getElementById("fileImport").addEventListener("change", (e)=>{
+  if(e.target.files[0]) importJson(e.target.files[0]);
+  e.target.value = "";
+});
 
-    const namePart = (subbabName && subbabName !== 'All') ? subbabName : (folderName || 'all');
-    doc.save(`mino_notes_${namePart.replace(/\s+/g, '_')}_${Date.now()}.pdf`);
+document.querySelectorAll("#bottomNav [data-bn]").forEach(btn=> btn.addEventListener("click", ()=>{
+  const action = btn.getAttribute("data-bn");
+  if(action==="all"){
+    state.filterFolder=null; state.filterTag=null; state.filterSpecial=null;
+    state.route="list"; state.activeNoteId=null; closeDrawer(); render();
+  } else if(action==="folders"){
+    openDrawer();
+  } else if(action==="new"){
+    closeDrawer(); createNote();
+  } else if(action==="graph"){
+    closeDrawer(); state.route="graph"; render();
+  } else if(action==="more"){
+    openActionSheet("Lainnya", [
+      {label:"Ekspor JSON", icon:"⬇", onClick: exportJson},
+      {label:"Impor JSON", icon:"⬆", onClick: ()=> document.getElementById("fileImport").click()},
+    ]);
   }
+}));
 
-  function exportJSON() {
-    if (!notes.length) { alert('Data kosong.'); return; }
-    const payload = { notes, folders, folderSubbabs };
-    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `mino_notes_backup_${Date.now()}.json`;
-    a.click();
+/* ============ INIT ============ */
+(async function init(){
+  try{
+    await initTheme();
+    DB = await load();
+    const status = document.getElementById("storageStatus");
+    if(status) status.textContent = location.protocol === "file:" ? "● tersimpan di browser" : "● tersimpan ke data.json";
+  }catch(e){
+    console.error("Gagal inisialisasi, memakai data bawaan.", e);
+    DB = defaultData();
   }
+  render();
+})();
 
-  function importJSON(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (evt) => {
-      try {
-        const imported = JSON.parse(evt.target.result);
-        if (Array.isArray(imported)) { notes = imported; }
-        else if (imported && Array.isArray(imported.notes)) {
-          notes = imported.notes;
-          if (Array.isArray(imported.folders)) folders = imported.folders;
-          if (imported.folderSubbabs && typeof imported.folderSubbabs === 'object') folderSubbabs = imported.folderSubbabs;
-        } else { throw new Error('Format tidak dikenali'); }
-        save();
-        alert('Import berhasil!');
-      } catch { alert('File JSON tidak valid.'); }
-    };
-    reader.readAsText(file);
-    e.target.value = '';
-  }
+})();
 </script>
 </body>
 </html>
