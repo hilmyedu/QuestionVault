@@ -108,6 +108,11 @@
   .tree-add-row{cursor:pointer;touch-action:manipulation;}
   .tree-add-label{color:#5C6B7B;font-size:11.5px;}
   .tree-add-row:hover .tree-add-label{color:var(--mustard-soft);}
+  .tree-del-btn{
+    background:none;border:none;color:#57677A;font-size:12px;padding:5px 6px;margin-left:2px;
+    border-radius:2px;flex-shrink:0;touch-action:manipulation;
+  }
+  .tree-del-btn:hover{color:var(--danger);}
   .tag-cloud{display:flex;flex-wrap:wrap;gap:6px;}
   .tag-pill{
     font-family:var(--font-mono);font-size:11px;padding:3px 8px;border-radius:10px;
@@ -558,6 +563,41 @@ function addSubfolder(parentId, name){
   saveNow(); renderSidebar();
   showToast("Folder \""+name+"\" ditambahkan");
 }
+function collectFolderIds(folder){
+  let ids = [folder.id];
+  (folder.children||[]).forEach(c=> ids = ids.concat(collectFolderIds(c)));
+  return ids;
+}
+function removeFolderFromTree(list, id){
+  return list.filter(f=>{
+    if(f.id===id) return false;
+    if(f.children && f.children.length) f.children = removeFolderFromTree(f.children, id);
+    return true;
+  });
+}
+async function deleteFolder(id){
+  const info = findFolder(id);
+  if(!info) return;
+  const hasChildren = info.folder.children && info.folder.children.length>0;
+  const ok = await showConfirm({
+    title:`Hapus folder "${info.folder.name}"?`,
+    message: hasChildren
+      ? "Subfolder di dalamnya akan ikut terhapus. Catatan yang ada di folder ini dan subfoldernya TIDAK dihapus — hanya dipindah ke \"tanpa folder\"."
+      : "Catatan di dalam folder ini TIDAK dihapus — hanya dipindah ke \"tanpa folder\".",
+    confirmText:"Hapus folder", cancelText:"Batal", danger:true
+  });
+  if(!ok) return;
+  const idsToClear = collectFolderIds(info.folder);
+  DB.notes.forEach(n=>{ if(idsToClear.includes(n.folderId)) n.folderId = null; });
+  DB.folders = removeFolderFromTree(DB.folders, id);
+  idsToClear.forEach(fid=> state.expandedFolders.delete(fid));
+  if(state.filterFolder && idsToClear.includes(state.filterFolder)){
+    state.filterFolder = null; state.route = "list"; state.activeNoteId = null;
+  }
+  await saveNow();
+  render();
+  showToast("Folder dihapus, catatan dipindah ke \"tanpa folder\"");
+}
 
 /* ---------- note helpers ---------- */
 function allTags(){
@@ -801,6 +841,10 @@ function renderSidebar(){
     const name = await showPromptModal({title:"Subfolder baru", inputPlaceholder:"Nama subfolder", confirmText:"Tambah"});
     if(name && name.trim()) addSubfolder(pid, name.trim());
   }));
+  el.querySelectorAll("[data-del-folder]").forEach(btn=> btn.addEventListener("click", async (e)=>{
+    e.stopPropagation();
+    await deleteFolder(btn.getAttribute("data-del-folder"));
+  }));
 }
 
 function renderFolderLevel(list, depth){
@@ -817,6 +861,7 @@ function renderFolderLevel(list, depth){
         <button class="tree-chevron ${expanded?'open':''}" data-toggle="${f.id}" aria-label="Buka atau tutup folder">▸</button>
         <span class="tree-label" data-folder="${f.id}">${f.icon?f.icon+' ':''}${escHtml(f.name)}</span>
         <span class="count">${count||''}</span>
+        <button class="tree-del-btn" data-del-folder="${f.id}" aria-label="Hapus folder" title="Hapus folder">✕</button>
       </div>
       <div class="tree-children" style="display:${expanded?'block':'none'}">
         ${hasChildren ? renderFolderLevel(f.children, depth+1) : ""}
