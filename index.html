@@ -1172,12 +1172,12 @@ function renderContextPanel(){
     html += `</div>`;
   }
 
-  // Panel AI untuk merapikan teks sebelum ditempel ke catatan.
+  // Panel untuk merapikan teks sebelum ditempel ke catatan — 100% JS lokal, tanpa API/key.
   html += `<div class="ctx-block ai-tidy-block">
-    <div class="ctx-title">✦ RAPIKAN TEKS (AI)</div>
-    <div class="ai-tidy-desc">Tempel teks berantakan (hasil salin dari web, chat, dsb), lalu rapikan di sini sebelum kamu tempel ke catatan.</div>
+    <div class="ctx-title">✦ RAPIKAN TEKS</div>
+    <div class="ai-tidy-desc">Tempel teks berantakan (hasil salin dari web, chat, dsb). Diproses langsung di browser — tanpa internet, tanpa API key.</div>
     <textarea class="ai-tidy-input" id="aiTidyInput" placeholder="Tempel teks di sini…"></textarea>
-    <button class="btn primary ai-tidy-btn" id="aiTidyBtn">✦ Rapikan dengan AI</button>
+    <button class="btn primary ai-tidy-btn" id="aiTidyBtn">✦ Rapikan Teks</button>
     <div class="ai-tidy-output-wrap" id="aiTidyOutputWrap" style="display:none">
       <div class="ai-tidy-output" id="aiTidyOutput"></div>
       <button class="tb-btn ai-tidy-copy" id="aiTidyCopyBtn">📋 Salin hasil rapi</button>
@@ -1189,40 +1189,51 @@ function renderContextPanel(){
   wireAiTidyPanel();
 }
 
-/* ---------- AI tidy-up: calls the completion API to clean pasted text ---------- */
-async function tidyTextWithAI(rawText){
-  const response = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model: "claude-sonnet-4-6",
-      max_tokens: 1000,
-      messages: [
-        {
-          role: "user",
-          content:
-`Rapikan teks berikut ini agar enak dibaca dan siap ditempel ke catatan pribadi. Aturan:
-- Perbaiki ejaan, tanda baca, dan spasi yang berantakan.
-- Susun ulang jadi paragraf atau daftar (bullet/numbering) yang wajar bila teks aslinya berupa tumpukan kalimat tanpa jeda.
-- Hapus pengulangan/duplikasi yang jelas-jelas tidak perlu (misalnya cuplikan sumber yang berulang-ulang), tapi JANGAN menghapus informasi atau makna penting.
-- Gunakan format Markdown ringan (heading "##", bold, bullet list) hanya jika benar-benar membantu keterbacaan.
-- JANGAN menambahkan komentar, opini, salam pembuka/penutup, atau catatan apa pun dari kamu. Balas HANYA dengan hasil teks yang sudah dirapikan, tidak lebih.
+/* ---------- Rapikan teks: pembersih berbasis aturan (JS murni, tanpa API/key) ---------- */
+function localTidyText(raw){
+  let s = String(raw||"").replace(/\r\n?/g,"\n").trim();
+  if(!s) return "";
 
-Teks yang perlu dirapikan:
-"""
-${rawText}
-"""`
-        }
-      ]
-    })
-  });
-  if(!response.ok){
-    throw new Error("permintaan API gagal (kode "+response.status+")");
+  s = s.replace(/[ \t]+/g," ");
+  // Pisahkan kalimat yang nempel, mis. "kunci.Dekripsi" -> "kunci. Dekripsi"
+  s = s.replace(/([.!?])([A-ZÀ-ÝÄ-Ü])/g, "$1 $2");
+
+  const lineCount = s.split("\n").filter(l=>l.trim()).length;
+  const looksAlreadyFormatted = lineCount >= 4;
+
+  if(looksAlreadyFormatted){
+    // Teks sudah punya banyak baris: cuma rapikan spasi & buang baris duplikat berurutan.
+    const lines = s.split("\n").map(l=>l.trim());
+    const out = [];
+    lines.forEach(l=>{
+      if(l===""){ if(out.length && out[out.length-1]!=="") out.push(""); return; }
+      const prev = [...out].reverse().find(x=>x!=="");
+      if(prev && prev.toLowerCase()===l.toLowerCase()) return;
+      out.push(l);
+    });
+    return out.join("\n").replace(/\n{3,}/g,"\n\n").trim();
   }
-  const data = await response.json();
-  const text = (data.content||[]).filter(b=>b.type==="text").map(b=>b.text||"").join("\n").trim();
-  if(!text) throw new Error("respons AI kosong");
-  return text;
+
+  // Teks berupa satu blok panjang: pecah jadi kalimat, buang duplikat, susun jadi paragraf.
+  const sentences = s.split(/(?<=[.!?])\s+(?=[A-ZÀ-ÝÄ-Ü0-9"“(])/).map(x=>x.trim()).filter(Boolean);
+  const seen = new Set();
+  const deduped = [];
+  sentences.forEach(sent=>{
+    const key = sent.toLowerCase().replace(/[^a-z0-9]+/g,"");
+    if(key.length>8 && seen.has(key)) return;
+    if(key.length>8) seen.add(key);
+    deduped.push(sent);
+  });
+
+  const paragraphs = [];
+  let buf = [];
+  deduped.forEach(sent=>{
+    buf.push(sent);
+    if(buf.length>=3){ paragraphs.push(buf.join(" ")); buf=[]; }
+  });
+  if(buf.length) paragraphs.push(buf.join(" "));
+
+  return paragraphs.join("\n\n");
 }
 
 function wireAiTidyPanel(){
@@ -1233,21 +1244,15 @@ function wireAiTidyPanel(){
   const out = document.getElementById("aiTidyOutput");
   const copyBtn = document.getElementById("aiTidyCopyBtn");
 
-  btn.addEventListener("click", async ()=>{
+  btn.addEventListener("click", ()=>{
     const raw = input.value.trim();
     if(!raw){ showToast("Tempel teks dulu sebelum dirapikan"); input.focus(); return; }
-    const originalLabel = btn.textContent;
-    btn.disabled = true;
-    btn.textContent = "Merapikan…";
     try{
-      const cleaned = await tidyTextWithAI(raw);
+      const cleaned = localTidyText(raw);
       out.textContent = cleaned;
       outWrap.style.display = "block";
     }catch(e){
       showToast("Gagal merapikan teks: "+e.message, {danger:true});
-    }finally{
-      btn.disabled = false;
-      btn.textContent = originalLabel;
     }
   });
 
